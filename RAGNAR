@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DISHUB CYBER-OMNI TERMINAL v2.0</title>
+
+<!-- ================= CDN LIBRARIES ================= -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --bg:#070a10; --panel:rgba(13,20,30,.55); --panel-border:rgba(0,229,255,.25);
+  --neon-cyan:#00e5ff; --neon-orange:#ff7a1a; --neon-green:#39ff88; --neon-red:#ff3b5c;
+  --text:#c8d6e5; --text-dim:#7d8ea3; --accent:#00e5ff;
+}
+html[data-theme="light"]{
+  --bg:#eef2f6; --panel:rgba(255,255,255,.65); --panel-border:rgba(0,120,180,.25);
+  --neon-cyan:#0077b6; --neon-orange:#e07a1a; --neon-green:#0a9d54; --neon-red:#d3273f;
+  --text:#1a2733; --text-dim:#54687c; --accent:#0077b6;
+}
+html[data-theme="mint"]{
+  --bg:#06110d; --panel:rgba(10,30,22,.55); --panel-border:rgba(57,255,136,.3);
+  --neon-cyan:#39ff88; --neon-orange:#ffd166; --neon-green:#39ff88; --neon-red:#ff6b6b;
+  --text:#d5f5e3; --text-dim:#7fb89a; --accent:#39ff88;
+}
+html[data-theme="dark"]{
+  --bg:#0b0b0f; --panel:rgba(20,20,26,.6); --panel-border:rgba(255,255,255,.12);
+  --neon-cyan:#e0e0e0; --neon-orange:#ff7a1a; --neon-green:#39ff88; --neon-red:#ff3b5c;
+  --text:#e5e5ea; --text-dim:#8a8a92; --accent:#e0e0e0;
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; transition:background .4s,color .4s; overflow-x:hidden;}
+.font-display{font-family:'Orbitron',sans-serif;}
+.font-mono{font-family:'JetBrains Mono',monospace;}
+#bgCanvas{position:fixed; inset:0; z-index:0; opacity:.55;}
+.glass{
+  background:var(--panel); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--panel-border);
+  box-shadow: inset 0 0 20px rgba(0,229,255,.05), 0 8px 30px rgba(0,0,0,.35);
+  border-radius:14px; transition:all .3s ease;
+}
+.glass:hover{border-color:var(--neon-cyan);}
+.hud::before,.hud::after{content:"";position:absolute;width:14px;height:14px;border-color:var(--neon-cyan);top:-2px;left:-2px;border-top:2px solid;border-left:2px solid;}
+.hud::after{left:auto;right:-2px;top:auto;bottom:-2px;border:none;border-bottom:2px solid var(--neon-cyan);border-right:2px solid var(--neon-cyan);}
+.hud{position:relative;}
+.neon-text{color:var(--neon-cyan); text-shadow:0 0 8px var(--neon-cyan),0 0 18px var(--neon-cyan);}
+.neon-border{border:1px solid var(--neon-cyan); box-shadow:0 0 12px var(--neon-cyan) inset, 0 0 8px var(--neon-cyan);}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--neon-cyan);border-radius:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+.zone{display:none;}
+.zone.active{display:block;}
+.tab-btn.active{color:var(--bg); background:var(--neon-cyan); box-shadow:0 0 14px var(--neon-cyan);}
+.tab-btn{transition:all .25s;}
+.flip-card{background:#000; color:var(--neon-cyan); font-family:'JetBrains Mono',monospace; border-radius:6px; box-shadow:0 0 10px var(--neon-cyan) inset;}
+.marquee{white-space:nowrap; overflow:hidden;}
+.marquee span{display:inline-block; padding-left:100%; animation:marquee 30s linear infinite;}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+.pulse-avatar{animation:pulseGlow 2.2s ease-in-out infinite;}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 10px var(--neon-cyan);}50%{box-shadow:0 0 30px var(--neon-cyan),0 0 50px var(--neon-cyan);}}
+.crt-noise{background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 2px);}
+.card-flip-inner{transition:transform .4s; transform-style:preserve-3d;}
+.card-flipped .card-flip-inner{transform:rotateY(180deg);}
+.card-face{backface-visibility:hidden;}
+.card-back{transform:rotateY(180deg);}
+input[type=range]{accent-color:var(--neon-cyan);}
+.badge-locked{filter:grayscale(1) brightness(.4);}
+.chip{font-size:.7rem; padding:2px 8px; border-radius:999px; border:1px solid var(--panel-border);}
+.scroll-thin::-webkit-scrollbar{width:6px;}
+::placeholder{color:var(--text-dim);}
+</style>
+</head>
+<body class="font-body min-h-screen relative">
+
+<canvas id="bgCanvas"></canvas>
+
+<div id="app" class="relative z-10 min-h-screen flex flex-col">
+
+  <!-- ================= HEADER / NAV ================= -->
+  <header class="glass hud m-3 p-3 flex flex-wrap items-center gap-3 justify-between">
+    <div class="flex items-center gap-3">
+      <i class="fa-solid fa-satellite-dish text-2xl neon-text"></i>
+      <div>
+        <h1 class="font-display text-lg md:text-xl neon-text leading-tight">DISHUB CYBER-OMNI TERMINAL</h1>
+        <p class="text-xs text-[var(--text-dim)] font-mono">ULTIMATE GAME HUB v2.0 // STATUS: <span id="sysStatus" class="text-[var(--neon-green)]">ONLINE</span></p>
+      </div>
+    </div>
+    <nav class="flex flex-wrap gap-2 text-sm font-display" id="tabNav">
+      <button data-zone="zoneA" class="tab-btn active glass px-3 py-1.5 rounded-full"><i class="fa-solid fa-city mr-1"></i>ZONA A</button>
+      <button data-zone="zoneB" class="tab-btn glass px-3 py-1.5 rounded-full"><i class="fa-solid fa-gamepad mr-1"></i>ZONA B</button>
+      <button data-zone="zoneC" class="tab-btn glass px-3 py-1.5 rounded-full"><i class="fa-solid fa-users mr-1"></i>ZONA C</button>
+      <button data-zone="zoneD" class="tab-btn glass px-3 py-1.5 rounded-full"><i class="fa-solid fa-toolbox mr-1"></i>ZONA D</button>
+      <button data-zone="zoneE" class="tab-btn glass px-3 py-1.5 rounded-full"><i class="fa-solid fa-sliders mr-1"></i>ZONA E</button>
+    </nav>
+    <div class="flex items-center gap-3 font-mono text-sm">
+      <div id="clockWidget" class="text-right leading-tight">
+        <div id="clockTime" class="neon-text font-display text-lg"></div>
+        <div id="clockDate" class="text-xs text-[var(--text-dim)]"></div>
+      </div>
+      <div class="text-right leading-tight border-l border-[var(--panel-border)] pl-3">
+        <div class="text-xs text-[var(--text-dim)]">COIN</div>
+        <div id="coinDisplay" class="neon-text font-display">0</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- RSS TICKER -->
+  <div class="glass mx-3 mb-3 px-3 py-1.5 marquee text-sm font-mono">
+    <span id="rssTicker">Memuat berita perhubungan...</span>
+  </div>
+
+  <main class="flex-1 mx-3 mb-24">
+
+  <!-- =================================================================== -->
+  <!-- ZONA A: SMART CITY & DISHUB DIGITAL HUB -->
+  <!-- =================================================================== -->
+  <section id="zoneA" class="zone active space-y-4">
+    <div class="grid md:grid-cols-2 gap-4">
+
+      <!-- Live Traffic Simulator -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-road mr-2"></i>LIVE TRAFFIC SIMULATOR</h3>
+        <div id="trafficGrid" class="grid grid-cols-10 gap-1 font-mono text-center select-none bg-black/30 rounded p-2"></div>
+        <div class="flex gap-2 mt-3">
+          <button onclick="setLight('red')" class="flex-1 py-1 rounded bg-red-600/70 hover:bg-red-600 font-display text-sm">MERAH</button>
+          <button onclick="setLight('yellow')" class="flex-1 py-1 rounded bg-yellow-500/70 hover:bg-yellow-500 font-display text-sm">KUNING</button>
+          <button onclick="setLight('green')" class="flex-1 py-1 rounded bg-green-600/70 hover:bg-green-600 font-display text-sm">HIJAU</button>
+        </div>
+        <p class="text-xs text-[var(--text-dim)] mt-2">Lampu aktif: <span id="lightState" class="neon-text">HIJAU</span> — kendaraan bergerak otomatis tiap interval.</p>
+      </div>
+
+      <!-- CCTV Feed Simulator -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-video mr-2"></i>CCTV LIVE FEED (4 KAMERA)</h3>
+        <div class="grid grid-cols-2 gap-2" id="cctvGrid"></div>
+      </div>
+
+      <!-- Digital Schedule Matrix -->
+      <div class="glass hud p-4 md:col-span-2">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-clock-rotate-left mr-2"></i>DIGITAL SCHEDULE MATRIX</h3>
+        <div id="scheduleMatrix" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-sm"></div>
+      </div>
+
+      <!-- E-Tilang Checker -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-file-invoice mr-2"></i>E-TILANG CHECKER</h3>
+        <div class="flex gap-2">
+          <input id="platInput" placeholder="Contoh: B 1234 XYZ" class="flex-1 bg-black/30 rounded px-3 py-2 font-mono uppercase outline-none neon-border">
+          <button onclick="checkTilang()" class="px-4 rounded bg-[var(--neon-cyan)] text-black font-display">CEK</button>
+        </div>
+        <div id="tilangResult" class="mt-3 text-sm font-mono"></div>
+      </div>
+
+      <!-- Kalkulator Parkir Progresif -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-square-parking mr-2"></i>KALKULATOR PARKIR PROGRESIF</h3>
+        <div class="flex gap-2 items-center text-sm mb-2">
+          <label>Jam pertama Rp3.000, jam berikutnya Rp2.000/jam.</label>
+        </div>
+        <div class="flex gap-2">
+          <input id="parkirJam" type="number" min="1" value="1" class="w-24 bg-black/30 rounded px-3 py-2 font-mono outline-none neon-border">
+          <span class="self-center text-sm">jam parkir</span>
+          <button onclick="hitungParkir()" class="px-4 rounded bg-[var(--neon-cyan)] text-black font-display">HITUNG</button>
+        </div>
+        <div id="parkirResult" class="mt-3 font-mono text-lg neon-text"></div>
+      </div>
+
+      <!-- Pengaduan Lampu Jalan Rusak -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-lightbulb mr-2"></i>PENGADUAN LAMPU JALAN RUSAK</h3>
+        <input id="pengaduanLokasi" placeholder="Lokasi kerusakan" class="w-full bg-black/30 rounded px-3 py-2 mb-2 outline-none neon-border">
+        <textarea id="pengaduanDesc" placeholder="Deskripsi kerusakan" class="w-full bg-black/30 rounded px-3 py-2 mb-2 outline-none neon-border" rows="2"></textarea>
+        <input id="pengaduanFile" type="file" class="w-full text-sm mb-2">
+        <button onclick="kirimPengaduan()" class="px-4 py-1.5 rounded bg-[var(--neon-orange)] text-black font-display w-full">KIRIM PENGADUAN</button>
+        <div id="pengaduanList" class="mt-3 text-xs font-mono space-y-1 max-h-24 overflow-y-auto scroll-thin"></div>
+      </div>
+
+      <!-- Peta Rute Angkutan Umum -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-route mr-2"></i>PETA RUTE ANGKUTAN UMUM</h3>
+        <div class="flex gap-2 mb-2 flex-wrap" id="routeTabs"></div>
+        <div id="routeContent" class="font-mono text-sm bg-black/30 rounded p-3"></div>
+      </div>
+
+      <!-- AQI -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-smog mr-2"></i>KUALITAS UDARA (AQI)</h3>
+        <div id="aqiList" class="space-y-2 font-mono text-sm"></div>
+      </div>
+
+      <!-- KIR Kendaraan -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-truck-front mr-2"></i>KALKULATOR UJI KIR</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <input id="kirBerat" type="number" placeholder="Berat (kg)" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+          <input id="kirPanjang" type="number" placeholder="Panjang (m)" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+          <input id="kirLebar" type="number" placeholder="Lebar (m)" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+          <input id="kirTinggi" type="number" placeholder="Tinggi (m)" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+        </div>
+        <button onclick="cekKIR()" class="mt-2 w-full py-1.5 rounded bg-[var(--neon-cyan)] text-black font-display">CEK KELAYAKAN</button>
+        <div id="kirResult" class="mt-2 font-mono text-sm"></div>
+      </div>
+
+      <!-- Status Penyeberangan Kapal -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-ship mr-2"></i>STATUS PENYEBERANGAN KAPAL</h3>
+        <canvas id="ferryChart" height="140"></canvas>
+        <div id="ferryQueue" class="text-xs font-mono mt-2 grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- Radar Rute Tercepat -->
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-diamond-turn-right mr-2"></i>RADAR RUTE TERCEPAT</h3>
+        <div class="flex gap-2 mb-2">
+          <input id="titikA" placeholder="Titik A" class="flex-1 bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+          <input id="titikB" placeholder="Titik B" class="flex-1 bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+        </div>
+        <button onclick="cariRute()" class="w-full py-1.5 rounded bg-[var(--neon-cyan)] text-black font-display">CARI REKOMENDASI</button>
+        <div id="ruteResult" class="mt-2 font-mono text-sm"></div>
+      </div>
+
+      <!-- Rambu Lalu Lintas -->
+      <div class="glass hud p-4 md:col-span-2">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-sign-hanging mr-2"></i>PAPAN EDUKASI RAMBU LALU LINTAS</h3>
+        <div id="signGrid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-10 gap-2"></div>
+        <div id="signExplain" class="mt-2 font-mono text-sm text-[var(--text-dim)]">Klik salah satu rambu untuk melihat penjelasannya.</div>
+      </div>
+
+      <!-- Emergency Panic Button -->
+      <div class="glass hud p-4 flex flex-col items-center justify-center">
+        <button onclick="panicButton()" class="w-28 h-28 rounded-full bg-red-600 hover:bg-red-500 text-white font-display text-xl animate-pulse shadow-[0_0_30px_rgba(255,0,0,.6)]"><i class="fa-solid fa-triangle-exclamation block text-2xl mb-1"></i>PANIC</button>
+        <p class="text-xs text-[var(--text-dim)] mt-2 text-center">Tombol darurat simulasi kontak layanan darurat</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- ZONA B: ARCADE LAUNCHER & MINI GAMES -->
+  <!-- =================================================================== -->
+  <section id="zoneB" class="zone space-y-4">
+    <div class="flex flex-wrap gap-2" id="gameTabs">
+      <button data-game="g1" class="game-tab-btn tab-btn active glass px-3 py-1 rounded-full text-sm font-display">🐍 Cyber Snake</button>
+      <button data-game="g2" class="game-tab-btn tab-btn glass px-3 py-1 rounded-full text-sm font-display">👾 Space Invaders</button>
+      <button data-game="g3" class="game-tab-btn tab-btn glass px-3 py-1 rounded-full text-sm font-display">🚗 Traffic Clicker</button>
+      <button data-game="g4" class="game-tab-btn tab-btn glass px-3 py-1 rounded-full text-sm font-display">🧠 Memory Match</button>
+      <button data-game="g5" class="game-tab-btn tab-btn glass px-3 py-1 rounded-full text-sm font-display">❓ Trivia Quiz</button>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-4">
+      <div class="lg:col-span-2 glass hud p-4">
+        <div id="game-g1" class="game-panel">
+          <h3 class="font-display neon-text mb-2">CYBER SNAKE</h3>
+          <canvas id="snakeCanvas" width="400" height="400" class="mx-auto bg-black/50 rounded block"></canvas>
+          <p class="text-xs text-center mt-2 text-[var(--text-dim)]">Gunakan panah keyboard. Power-up ⚡ = +3 skor.</p>
+        </div>
+        <div id="game-g2" class="game-panel hidden">
+          <h3 class="font-display neon-text mb-2">SPACE INVADERS MINIMALIS</h3>
+          <canvas id="invadersCanvas" width="400" height="400" class="mx-auto bg-black/50 rounded block"></canvas>
+          <p class="text-xs text-center mt-2 text-[var(--text-dim)]">← → gerak, Spasi tembak.</p>
+        </div>
+        <div id="game-g3" class="game-panel hidden text-center">
+          <h3 class="font-display neon-text mb-2">TRAFFIC JAM CLICKER</h3>
+          <button id="clickerBtn" class="w-40 h-40 mx-auto rounded-full bg-[var(--neon-orange)] text-black font-display text-3xl block shadow-[0_0_30px_var(--neon-orange)]">🚗<br>KLIK!</button>
+          <p class="mt-3 font-mono">Koin: <span id="clickerCoin" class="neon-text text-xl"></span> | +<span id="clickerPerSec">0</span>/detik</p>
+          <div class="grid sm:grid-cols-3 gap-2 mt-4 text-sm" id="upgradeList"></div>
+        </div>
+        <div id="game-g4" class="game-panel hidden">
+          <h3 class="font-display neon-text mb-2">CYBER MATCH MEMORY</h3>
+          <div class="flex justify-between font-mono text-sm mb-2">
+            <span>Waktu: <span id="memoryTimer" class="neon-text">60</span>s</span>
+            <span>Moves: <span id="memoryMoves">0</span></span>
+            <button onclick="initMemory()" class="chip">RESTART</button>
+          </div>
+          <div id="memoryGrid" class="grid grid-cols-4 gap-2"></div>
+        </div>
+        <div id="game-g5" class="game-panel hidden text-center">
+          <h3 class="font-display neon-text mb-2">MOBA TRIVIA QUIZ</h3>
+          <p class="font-mono text-sm">Skor: <span id="quizScore">0</span> | Soal: <span id="quizNum">0</span>/10 | ⏱ <span id="quizTimer" class="neon-text">10</span>s</p>
+          <p id="quizQuestion" class="text-lg font-display my-4"></p>
+          <div id="quizOptions" class="grid sm:grid-cols-2 gap-2"></div>
+        </div>
+      </div>
+
+      <div class="glass hud p-4 space-y-3">
+        <h3 class="font-display neon-text">STATISTIK GAME</h3>
+        <div id="gameStatsPanel" class="font-mono text-sm space-y-1"></div>
+        <h3 class="font-display neon-text pt-2">MISI HARIAN</h3>
+        <div id="dailyMissions" class="text-sm font-mono space-y-2"></div>
+        <h3 class="font-display neon-text pt-2">TOKO & INVENTORY</h3>
+        <div id="shopList" class="text-sm font-mono space-y-2"></div>
+        <button onclick="toggleCheatPanel()" class="text-xs chip w-full">🔓 Game Master Control</button>
+        <div id="cheatPanel" class="hidden text-xs space-y-1 font-mono">
+          <button onclick="cheatAddCoin()" class="chip w-full">+1000 Koin (Cheat)</button>
+          <button onclick="cheatUnlockAll()" class="chip w-full">Unlock Semua Badge (Cheat)</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- ZONA C: GAMING COMMUNITY & SOCIAL -->
+  <!-- =================================================================== -->
+  <section id="zoneC" class="zone space-y-4">
+    <div class="grid lg:grid-cols-2 gap-4">
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-ranking-star mr-2"></i>GLOBAL LEADERBOARD</h3>
+        <div class="flex gap-2 mb-2 flex-wrap text-xs" id="lbFilters">
+          <button class="chip lb-filter active" data-f="all">All-Time</button>
+          <button class="chip lb-filter" data-f="today">Hari Ini</button>
+          <button class="chip lb-filter" data-f="week">Minggu Ini</button>
+        </div>
+        <div class="flex gap-1 mb-2 flex-wrap text-xs" id="lbGameFilters">
+          <button class="chip lb-game active" data-g="all">Semua Game</button>
+          <button class="chip lb-game" data-g="g1">Snake</button>
+          <button class="chip lb-game" data-g="g2">Invaders</button>
+          <button class="chip lb-game" data-g="g3">Clicker</button>
+          <button class="chip lb-game" data-g="g4">Memory</button>
+          <button class="chip lb-game" data-g="g5">Trivia</button>
+        </div>
+        <table class="w-full text-sm font-mono">
+          <thead class="text-[var(--text-dim)]"><tr><th class="text-left">#</th><th class="text-left">Player</th><th class="text-right">Score</th></tr></thead>
+          <tbody id="lbBody"></tbody>
+        </table>
+      </div>
+
+      <div class="glass hud p-4 flex flex-col h-96">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-comments mr-2"></i>WORLD LOBBY CHAT</h3>
+        <div id="lobbyChat" class="flex-1 overflow-y-auto scroll-thin text-sm font-mono space-y-1 bg-black/30 rounded p-2"></div>
+        <div class="flex gap-2 mt-2">
+          <input id="lobbyInput" placeholder="Ketik pesan..." class="flex-1 bg-black/30 rounded px-2 py-1.5 outline-none neon-border text-sm">
+          <button onclick="sendLobbyMsg()" class="px-3 rounded bg-[var(--neon-cyan)] text-black font-display">KIRIM</button>
+        </div>
+      </div>
+
+      <div class="glass hud p-4 lg:col-span-2">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-trophy mr-2"></i>ACHIEVEMENT ROOM</h3>
+        <div id="achievementGrid" class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-3 text-center"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- ZONA D: OFFICE TOOLS & UTILITIES -->
+  <!-- =================================================================== -->
+  <section id="zoneD" class="zone space-y-4">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-calculator mr-2"></i>KALKULATOR V/C RATIO</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <input id="vcVolume" type="number" placeholder="Volume kendaraan (smp/jam)" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border col-span-2">
+          <input id="vcCapacity" type="number" placeholder="Kapasitas jalan (smp/jam)" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border col-span-2">
+        </div>
+        <button onclick="hitungVC()" class="mt-2 w-full py-1.5 rounded bg-[var(--neon-cyan)] text-black font-display">HITUNG V/C</button>
+        <div id="vcResult" class="mt-2 font-mono text-sm"></div>
+      </div>
+
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-stopwatch mr-2"></i>MULTI-TIMER & STOPWATCH</h3>
+        <div class="flex gap-2 text-sm mb-2">
+          <button onclick="swToggle()" id="swBtn" class="chip flex-1">START STOPWATCH</button>
+          <button onclick="swReset()" class="chip flex-1">RESET</button>
+        </div>
+        <div id="swDisplay" class="font-mono text-2xl neon-text text-center">00:00.0</div>
+        <hr class="my-2 border-[var(--panel-border)]">
+        <div class="flex gap-2 text-sm">
+          <input id="timerInput" type="number" placeholder="Detik (misal 30 utk sim lampu merah)" class="flex-1 bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+          <button onclick="startCustomTimer()" class="chip">MULAI TIMER</button>
+        </div>
+        <div id="timerDisplay" class="font-mono text-2xl neon-text text-center mt-2">--</div>
+      </div>
+
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-note-sticky mr-2"></i>NOTEPAD INTERNAL</h3>
+        <div class="flex gap-2 mb-2">
+          <input id="noteInput" placeholder="Catatan tugas petugas..." class="flex-1 bg-black/30 rounded px-2 py-1.5 outline-none neon-border text-sm">
+          <button onclick="addNote()" class="chip">TAMBAH</button>
+        </div>
+        <div id="noteList" class="text-sm font-mono space-y-1 max-h-40 overflow-y-auto scroll-thin"></div>
+      </div>
+
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-right-left mr-2"></i>UNIT CONVERTER</h3>
+        <select id="unitType" onchange="renderUnitConverter()" class="w-full bg-black/30 rounded px-2 py-1.5 mb-2 outline-none neon-border text-sm">
+          <option value="speed">Kecepatan (Knot/Km/h/Mph)</option>
+          <option value="distance">Jarak (m/km/mil)</option>
+          <option value="weight">Berat Muatan (kg/ton/lb) — Jembatan Timbang</option>
+        </select>
+        <div class="flex gap-2 items-center text-sm">
+          <input id="unitInput" type="number" value="1" oninput="doConvert()" class="w-24 bg-black/30 rounded px-2 py-1.5 outline-none neon-border">
+          <select id="unitFrom" onchange="doConvert()" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border"></select>
+          <i class="fa-solid fa-arrow-right"></i>
+          <select id="unitTo" onchange="doConvert()" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border"></select>
+        </div>
+        <div id="unitResult" class="mt-2 font-mono neon-text text-lg"></div>
+      </div>
+
+      <div class="glass hud p-4 md:col-span-2">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-calendar-check mr-2"></i>JADWAL RAPAT & AGENDA HARIAN</h3>
+        <div class="flex gap-2 mb-2">
+          <input id="agendaInput" placeholder="Agenda baru..." class="flex-1 bg-black/30 rounded px-2 py-1.5 outline-none neon-border text-sm">
+          <input id="agendaTime" type="time" class="bg-black/30 rounded px-2 py-1.5 outline-none neon-border text-sm">
+          <button onclick="addAgenda()" class="chip">TAMBAH</button>
+        </div>
+        <div id="agendaList" class="text-sm font-mono space-y-1"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- ZONA E: SYSTEM CONTROL & SETTINGS -->
+  <!-- =================================================================== -->
+  <section id="zoneE" class="zone space-y-4">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-palette mr-2"></i>THEME MASTER</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <button onclick="setTheme('cyberpunk')" class="chip py-2">🌆 Cyberpunk Neon</button>
+          <button onclick="setTheme('dark')" class="chip py-2">🌑 Dark Mode</button>
+          <button onclick="setTheme('light')" class="chip py-2">☀️ Light Mode</button>
+          <button onclick="setTheme('mint')" class="chip py-2">🌿 Mint Forest</button>
+        </div>
+      </div>
+
+      <div class="glass hud p-4">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-sliders mr-2"></i>AUDIO MIXER</h3>
+        <label class="text-sm">BGM Volume</label>
+        <input type="range" min="0" max="1" step="0.01" id="volBGM" class="w-full">
+        <label class="text-sm">SFX Klik UI</label>
+        <input type="range" min="0" max="1" step="0.01" id="volClick" class="w-full">
+        <label class="text-sm">SFX Game</label>
+        <input type="range" min="0" max="1" step="0.01" id="volGame" class="w-full">
+        <button onclick="toggleBGM()" id="bgmBtn" class="mt-2 w-full py-1.5 rounded bg-[var(--neon-cyan)] text-black font-display">▶ PLAY BGM SYNTHWAVE</button>
+        <canvas id="visualizerCanvas" height="60" class="w-full mt-2 bg-black/30 rounded"></canvas>
+      </div>
+
+      <div class="glass hud p-4 md:col-span-2">
+        <h3 class="font-display neon-text mb-2"><i class="fa-solid fa-brain mr-2"></i>AI CONFIGURATION CENTRAL</h3>
+        <div class="flex items-center gap-3 mb-3 text-sm">
+          <label>Mode AI:</label>
+          <button onclick="setAIMode('local')" id="modeLocalBtn" class="chip active">Local Simulation</button>
+          <button onclick="setAIMode('live')" id="modeLiveBtn" class="chip">Live API Engine</button>
+        </div>
+        <input id="apiKeyInput" type="password" placeholder="Masukkan API Key (Gemini/OpenAI) — hanya disimpan lokal di browser Anda" class="w-full bg-black/30 rounded px-3 py-2 outline-none neon-border font-mono text-sm">
+        <select id="apiProvider" class="w-full mt-2 bg-black/30 rounded px-3 py-2 outline-none neon-border text-sm">
+          <option value="gemini">Google Gemini API</option>
+          <option value="openai">OpenAI API</option>
+        </select>
+        <button onclick="saveAPIKey()" class="mt-2 w-full py-1.5 rounded bg-[var(--neon-orange)] text-black font-display">SIMPAN KONFIGURASI</button>
+        <p class="text-xs text-[var(--text-dim)] mt-2">Catatan jujur: kunci disimpan di localStorage browser Anda sendiri (tidak dienkripsi ke server manapun karena web ini 100% file statis tanpa backend).</p>
+        <button onclick="clearCache()" class="mt-4 w-full py-1.5 rounded bg-red-600/70 hover:bg-red-600 font-display">🗑 CLEAR CACHE / RESET PROGRES</button>
+      </div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<!-- ================= CHRONOS AI WIDGET ================= -->
+<div id="aiAvatar" class="fixed bottom-5 right-5 z-50 cursor-pointer pulse-avatar rounded-full glass hud w-16 h-16 flex items-center justify-center text-3xl" onclick="toggleChat()">
+  🤖
+</div>
+<div id="aiMoodBadge" class="fixed bottom-20 right-6 z-50 chip font-mono text-xs glass">😊 Fokus</div>
+
+<div id="chatPanel" class="fixed bottom-24 right-5 z-50 w-80 max-w-[90vw] glass hud hidden flex-col" style="height:460px;">
+  <div class="p-3 border-b border-[var(--panel-border)] flex justify-between items-center">
+    <span class="font-display neon-text text-sm">CHRONOS AI <span id="aiModeTag" class="chip ml-1">LOCAL</span></span>
+    <div class="flex gap-2">
+      <button onclick="toggleTTS()" id="ttsBtn" title="Suarakan jawaban AI"><i class="fa-solid fa-volume-xmark text-xs"></i></button>
+      <button onclick="exportChatLog()" title="Export log"><i class="fa-solid fa-download text-xs"></i></button>
+      <button onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+  <div id="chatMessages" class="flex-1 overflow-y-auto scroll-thin p-3 text-sm font-mono space-y-2"></div>
+  <div class="p-2 flex gap-1 flex-wrap text-xs" id="quickReplies"></div>
+  <div class="p-2 flex gap-1 border-t border-[var(--panel-border)]">
+    <button onclick="voiceSim()" class="chip"><i class="fa-solid fa-microphone"></i></button>
+    <input id="chatInput" placeholder="Tanya Chronos..." class="flex-1 bg-black/30 rounded px-2 outline-none text-sm" onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()" class="chip">Kirim</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   DISHUB CYBER-OMNI TERMINAL v2.0 — CORE JAVASCRIPT
+   ========================================================================= */
+
+/* ---------- STATE / STORAGE HELPERS ---------- */
+const store = {
+  get(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v===null||v===undefined? d : v; }catch(e){ return d; } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+};
+let state = {
+  coins: store.get('coins', 100),
+  clickerPerSec: store.get('clickerPerSec', 0),
+  upgrades: store.get('upgrades', {petugas:0, tol:0, lampu:0}),
+  achievements: store.get('achievements', []),
+  notes: store.get('notes', []),
+  agenda: store.get('agenda', []),
+  pengaduan: store.get('pengaduan', []),
+  aiMode: store.get('aiMode', 'local'),
+  apiKey: store.get('apiKey', ''),
+  apiProvider: store.get('apiProvider', 'gemini'),
+  theme: store.get('theme', 'cyberpunk'),
+  gameStats: store.get('gameStats', {
+    g1:{plays:0, best:0, wins:0}, g2:{plays:0, best:0, wins:0}, g3:{plays:0, best:0, wins:0},
+    g4:{plays:0, best:0, wins:0}, g5:{plays:0, best:0, wins:0}
+  }),
+  chatLog: []
+};
+function saveAll(){
+  store.set('coins', state.coins); store.set('clickerPerSec', state.clickerPerSec);
+  store.set('upgrades', state.upgrades); store.set('achievements', state.achievements);
+  store.set('notes', state.notes); store.set('agenda', state.agenda);
+  store.set('pengaduan', state.pengaduan); store.set('aiMode', state.aiMode);
+  store.set('apiKey', state.apiKey); store.set('apiProvider', state.apiProvider);
+  store.set('theme', state.theme); store.set('gameStats', state.gameStats);
+}
+function updateCoinDisplay(){ document.getElementById('coinDisplay').textContent = Math.floor(state.coins); }
+
+/* ---------- THEME MANAGER ---------- */
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  state.theme = t; saveAll(); playClick();
+  unlockAchievement('theme_explorer');
+}
+setTheme(state.theme);
+
+/* ---------- AUDIO ENGINE (Web Audio API) ---------- */
+const AudioEngine = (function(){
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let bgmNodes = null, bgmPlaying = false, analyser = null;
+  const vols = { bgm: store.get('volBGM',0.3), click: store.get('volClick',0.5), game: store.get('volGame',0.5) };
+
+  function beep(freq=440, dur=0.08, type='square', vol=vols.click){
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.value = vol;
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + dur);
+  }
+  function clickSFX(){ beep(880, 0.06, 'square', vols.click*0.4); }
+  function gameSFX(freq){ beep(freq, 0.12, 'triangle', vols.game*0.5); }
+
+  function startBGM(){
+    if(bgmPlaying) return;
+    bgmPlaying = true;
+    analyser = ctx.createAnalyser(); analyser.fftSize = 64;
+    const master = ctx.createGain(); master.gain.value = vols.bgm;
+    master.connect(analyser); analyser.connect(ctx.destination);
+    const notes = [110,146.8,164.8,196,220,164.8];
+    let i = 0;
+    const osc = ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.value = notes[0];
+    const filt = ctx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=800;
+    osc.connect(filt); filt.connect(master); osc.start();
+    const interval = setInterval(()=>{ if(!bgmPlaying){clearInterval(interval); osc.stop(); return;} i=(i+1)%notes.length; osc.frequency.setTargetAtTime(notes[i], ctx.currentTime, 0.05); }, 500);
+    bgmNodes = {osc, master, interval};
+  }
+  function stopBGM(){ bgmPlaying = false; if(bgmNodes){ try{bgmNodes.osc.stop();}catch(e){} } }
+  function setVol(k,v){ vols[k]=v; if(k==='bgm' && bgmNodes) bgmNodes.master.gain.value=v; store.set('vol'+k.charAt(0).toUpperCase()+k.slice(1), v); }
+  function getAnalyser(){ return analyser; }
+  function isPlaying(){ return bgmPlaying; }
+  return {clickSFX, gameSFX, startBGM, stopBGM, setVol, getAnalyser, isPlaying, ctx};
+})();
+function playClick(){ AudioEngine.clickSFX(); }
+document.body.addEventListener('click', (e)=>{ if(e.target.closest('button, .tab-btn')) playClick(); });
+
+['volBGM','volClick','volGame'].forEach(id=>{
+  const el = document.getElementById(id);
+  const key = id.replace('vol','').toLowerCase();
+  el.value = store.get(id, key==='bgm'?0.3:0.5);
+  el.addEventListener('input', ()=> AudioEngine.setVol(key, parseFloat(el.value)));
+});
+function toggleBGM(){
+  if(AudioEngine.isPlaying()){ AudioEngine.stopBGM(); document.getElementById('bgmBtn').textContent='▶ PLAY BGM SYNTHWAVE'; }
+  else { AudioEngine.startBGM(); document.getElementById('bgmBtn').textContent='⏸ STOP BGM'; }
+}
+// Audio visualizer
+const vizCanvas = document.getElementById('visualizerCanvas');
+const vizCtx = vizCanvas.getContext('2d');
+function drawViz(){
+  requestAnimationFrame(drawViz);
+  vizCanvas.width = vizCanvas.clientWidth; vizCanvas.height = 60;
+  const an = AudioEngine.getAnalyser();
+  vizCtx.clearRect(0,0,vizCanvas.width,vizCanvas.height);
+  if(an && AudioEngine.isPlaying()){
+    const data = new Uint8Array(an.frequencyBinCount);
+    an.getByteFrequencyData(data);
+    const barW = vizCanvas.width/data.length;
+    data.forEach((v,i)=>{
+      vizCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-cyan');
+      vizCtx.fillRect(i*barW, 60-v/255*60, barW-2, v/255*60);
+    });
+  }
+}
+drawViz();
+
+/* ---------- CANVAS BACKGROUND: MATRIX RAIN + TRAFFIC NODES ---------- */
+const bg = document.getElementById('bgCanvas'); const bgCtx = bg.getContext('2d');
+let mouseX=innerWidth/2, mouseY=innerHeight/2;
+function resizeBG(){ bg.width=innerWidth; bg.height=innerHeight; }
+resizeBG(); window.addEventListener('resize', resizeBG);
+window.addEventListener('mousemove', e=>{mouseX=e.clientX; mouseY=e.clientY;});
+const cols = Math.floor(innerWidth/18);
+const drops = Array(cols).fill(0);
+const nodes = Array.from({length:24}, ()=>({x:Math.random()*innerWidth, y:Math.random()*innerHeight, vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.6}));
+const glyphs = "01アイウエオｦｧｨ田DISHUB0123456789";
+function animateBG(){
+  requestAnimationFrame(animateBG);
+  bgCtx.fillStyle = 'rgba(4,6,10,0.15)';
+  bgCtx.fillRect(0,0,bg.width,bg.height);
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--neon-cyan').trim() || '#00e5ff';
+  bgCtx.fillStyle = accent; bgCtx.font='14px monospace';
+  drops.forEach((y,i)=>{
+    const text = glyphs[Math.floor(Math.random()*glyphs.length)];
+    bgCtx.fillText(text, i*18, y*18);
+    if(y*18 > bg.height && Math.random()>0.975) drops[i]=0; else drops[i]++;
+  });
+  // traffic nodes reacting to mouse
+  nodes.forEach(n=>{
+    const dx = mouseX-n.x, dy = mouseY-n.y, dist = Math.hypot(dx,dy);
+    if(dist < 160){ n.x -= dx/dist*1.2; n.y -= dy/dist*1.2; }
+    n.x += n.vx; n.y += n.vy;
+    if(n.x<0||n.x>bg.width) n.vx*=-1; if(n.y<0||n.y>bg.height) n.vy*=-1;
+    bgCtx.beginPath(); bgCtx.arc(n.x,n.y,3,0,7); bgCtx.fillStyle = accent; bgCtx.fill();
+  });
+  nodes.forEach((n,i)=>{ nodes.slice(i+1).forEach(m=>{
+    const d = Math.hypot(n.x-m.x, n.y-m.y);
+    if(d<140){ bgCtx.strokeStyle = accent+'33'; bgCtx.globalAlpha=0.5; bgCtx.beginPath(); bgCtx.moveTo(n.x,n.y); bgCtx.lineTo(m.x,m.y); bgCtx.stroke(); bgCtx.globalAlpha=1; }
+  });});
+}
+animateBG();
+
+/* ---------- TAB NAVIGATION ---------- */
+document.getElementById('tabNav').addEventListener('click', e=>{
+  const btn = e.target.closest('.tab-btn'); if(!btn) return;
+  document.querySelectorAll('#tabNav .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.zone').forEach(z=>z.classList.remove('active'));
+  document.getElementById(btn.dataset.zone).classList.add('active');
+});
+
+/* ---------- CLOCK / CALENDAR + HOLIDAY COUNTDOWN ---------- */
+const holidays = [
+  {name:"Tahun Baru", m:1, d:1}, {name:"Hari Kemerdekaan RI", m:8, d:17}, {name:"Hari Natal", m:12, d:25}
+];
+function nextHoliday(){
+  const now = new Date(); let best=null;
+  holidays.forEach(h=>{
+    let y = now.getFullYear();
+    let target = new Date(y, h.m-1, h.d);
+    if(target < now) target = new Date(y+1, h.m-1, h.d);
+    if(!best || target < best.date) best = {name:h.name, date:target};
+  });
+  return best;
+}
+function tickClock(){
+  const now = new Date();
+  document.getElementById('clockTime').textContent = now.toLocaleTimeString('id-ID');
+  const h = nextHoliday();
+  const days = Math.ceil((h.date-now)/86400000);
+  document.getElementById('clockDate').textContent = now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + ` • ${days}h menuju ${h.name}`;
+}
+setInterval(tickClock,1000); tickClock();
+
+/* ---------- RSS TICKER ---------- */
+const news = [
+  "Dishub imbau masyarakat gunakan transportasi umum saat jam sibuk.",
+  "Uji coba lampu lalu lintas adaptif berbasis AI mulai dilakukan.",
+  "Penambahan armada BRT koridor utama disiapkan tahun ini.",
+  "Waspada genangan air di beberapa titik jalan protokol.",
+  "Tarif parkir progresif diberlakukan di kawasan pusat kota.",
+  "Pelabuhan penyeberangan tingkatkan kapasitas jelang musim liburan.",
+  "Sosialisasi keselamatan berkendara digelar di sekolah-sekolah.",
+  "Sistem E-Tilang terus disempurnakan untuk transparansi denda."
+];
+document.getElementById('rssTicker').textContent = news.map(n=>'📰 '+n).join('   •   ');
+
+/* ---------- ZONA A: TRAFFIC SIMULATOR ---------- */
+let lightState = 'green';
+const trafficGridEl = document.getElementById('trafficGrid');
+let cars = Array(30).fill(0).map(()=> Math.random()>0.7 ? '🚗' : '　');
+function renderTrafficGrid(){ trafficGridEl.innerHTML = cars.map(c=>`<div class="py-1">${c}</div>`).join(''); }
+renderTrafficGrid();
+function setLight(l){
+  lightState = l;
+  const map = {red:'MERAH', yellow:'KUNING', green:'HIJAU'};
+  const colorMap = {red:'text-[var(--neon-red)]', yellow:'text-yellow-400', green:'text-[var(--neon-green)]'};
+  const el = document.getElementById('lightState');
+  el.textContent = map[l]; el.className = colorMap[l];
+}
+setInterval(()=>{
+  if(lightState==='green'){
+    cars = cars.map(()=> Math.random()>0.6 ? '🚗' : '　');
+  } else if(lightState==='red'){
+    // cars stack, less movement
+    cars = cars.map((c,i)=> i<3 ? '🚗' : (Math.random()>0.85?'🚗':'　'));
+  } else {
+    cars = cars.map(c=> Math.random()>0.8 ? '🚗' : c);
+  }
+  renderTrafficGrid();
+}, 900);
+
+/* ---------- CCTV SIMULATOR ---------- */
+const cctvGrid = document.getElementById('cctvGrid');
+for(let i=1;i<=4;i++){
+  const div = document.createElement('div');
+  div.className='relative bg-black rounded overflow-hidden crt-noise';
+  div.style.height='110px';
+  div.innerHTML = `<canvas id="cctv${i}" class="w-full h-full"></canvas>
+    <div class="absolute top-1 left-1 text-[10px] font-mono text-[var(--neon-green)]">CAM-0${i} • <span class="cctv-ts"></span></div>
+    <div class="absolute bottom-1 left-1 text-[10px] font-mono text-[var(--neon-cyan)] cctv-scan">SYSTEM OK</div>
+    <div class="absolute bottom-1 right-1 flex gap-1">
+      <button class="text-[9px] chip px-1" onclick="ptzSim(${i},'pan')">PAN</button>
+      <button class="text-[9px] chip px-1" onclick="ptzSim(${i},'zoom')">ZOOM</button>
+    </div>`;
+  cctvGrid.appendChild(div);
+}
+function ptzSim(i, action){ Swal.fire({toast:true, position:'top', timer:1200, showConfirmButton:false, title:`CAM-0${i}: ${action.toUpperCase()} tiruan dijalankan`, background:'#0d141e', color:'#00e5ff'}); }
+function renderCCTVNoise(){
+  for(let i=1;i<=4;i++){
+    const c = document.getElementById('cctv'+i); if(!c) continue;
+    c.width = c.clientWidth; c.height = c.clientHeight;
+    const cx = c.getContext('2d');
+    const imgData = cx.createImageData(c.width, c.height);
+    for(let p=0;p<imgData.data.length;p+=4){
+      const v = Math.random()*40;
+      imgData.data[p]=v; imgData.data[p+1]=v+10; imgData.data[p+2]=v+20; imgData.data[p+3]=255;
+    }
+    cx.putImageData(imgData,0,0);
+  }
+  document.querySelectorAll('.cctv-ts').forEach(el=> el.textContent = new Date().toLocaleTimeString('id-ID'));
+}
+setInterval(renderCCTVNoise, 800); renderCCTVNoise();
+
+/* ---------- SCHEDULE MATRIX ---------- */
+const schedTypes = ['🚌 Bus BRT','🚄 Kereta Cepat','✈️ Pesawat','🚢 Kapal Laut'];
+function randSched(){
+  return schedTypes.map(t=>{
+    const h = String(Math.floor(Math.random()*24)).padStart(2,'0');
+    const m = String(Math.floor(Math.random()*60)).padStart(2,'0');
+    const status = ['ON TIME','DELAYED','BOARDING'][Math.floor(Math.random()*3)];
+    return `<div class="flip-card p-3"><div class="text-xs text-[var(--text-dim)]">${t}</div><div class="text-2xl">${h}:${m}</div><div class="text-xs">${status}</div></div>`;
+  }).join('');
+}
+function renderSchedule(){ document.getElementById('scheduleMatrix').innerHTML = randSched(); }
+setInterval(renderSchedule, 5000); renderSchedule();
+
+/* ---------- E-TILANG CHECKER ---------- */
+function checkTilang(){
+  const plat = document.getElementById('platInput').value.trim();
+  if(!plat){ return; }
+  const seed = plat.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const hasTilang = seed % 3 === 0;
+  const el = document.getElementById('tilangResult');
+  if(hasTilang){
+    const denda = (seed % 5 + 1) * 50000;
+    el.innerHTML = `<span class="text-[var(--neon-red)]">⚠ Ditemukan 1 pelanggaran</span> untuk plat <b>${plat.toUpperCase()}</b><br>Jenis: Melanggar rambu lalu lintas<br>Denda: Rp${denda.toLocaleString('id-ID')}`;
+  } else {
+    el.innerHTML = `<span class="text-[var(--neon-green)]">✔ Tidak ada catatan pelanggaran</span> untuk plat <b>${plat.toUpperCase()}</b>`;
+  }
+  unlockAchievement('first_click');
+}
+
+/* ---------- PARKIR ---------- */
+function hitungParkir(){
+  const jam = parseInt(document.getElementById('parkirJam').value)||1;
+  const biaya = jam<=1 ? 3000 : 3000 + (jam-1)*2000;
+  document.getElementById('parkirResult').textContent = `Total biaya: Rp${biaya.toLocaleString('id-ID')}`;
+}
+
+/* ---------- PENGADUAN ---------- */
+function kirimPengaduan(){
+  const lokasi = document.getElementById('pengaduanLokasi').value.trim();
+  const desc = document.getElementById('pengaduanDesc').value.trim();
+  const file = document.getElementById('pengaduanFile').files[0];
+  if(!lokasi){ Swal.fire('Lokasi wajib diisi','', 'warning'); return; }
+  state.pengaduan.unshift({lokasi, desc, file: file?file.name:'(tanpa lampiran)', time: new Date().toLocaleString('id-ID')});
+  saveAll(); renderPengaduan();
+  document.getElementById('pengaduanLokasi').value=''; document.getElementById('pengaduanDesc').value='';
+  Swal.fire({toast:true, position:'top', timer:1500, showConfirmButton:false, title:'Pengaduan terkirim!', background:'#0d141e', color:'#39ff88'});
+}
+function renderPengaduan(){
+  document.getElementById('pengaduanList').innerHTML = state.pengaduan.slice(0,5).map(p=>`<div>📍 ${p.lokasi} — ${p.time}</div>`).join('') || '<div class="text-[var(--text-dim)]">Belum ada pengaduan</div>';
+}
+renderPengaduan();
+
+/* ---------- ROUTE MAP ---------- */
+const routes = {
+  "Koridor 1": "Terminal Pusat → Jl. Sudirman → Bundaran HI → Stasiun Kota",
+  "Koridor 2": "Terminal Timur → Pasar Induk → Kawasan Industri → Bandara",
+  "Koridor 3": "Terminal Selatan → Kampus → Rumah Sakit → Mall Central",
+  "Koridor 4": "Pelabuhan → Terminal Pusat → Stasiun Kota → Terminal Utara"
+};
+const routeTabs = document.getElementById('routeTabs');
+Object.keys(routes).forEach((k,i)=>{
+  const b = document.createElement('button');
+  b.className='chip'+(i===0?' active':''); b.textContent=k;
+  b.onclick=()=>{ document.querySelectorAll('#routeTabs .chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); document.getElementById('routeContent').textContent = routes[k]; };
+  routeTabs.appendChild(b);
+});
+document.getElementById('routeContent').textContent = routes["Koridor 1"];
+
+/* ---------- AQI ---------- */
+const aqiPoints = ["Pusat Kota","Kawasan Industri","Pelabuhan","Terminal Bus","Kampus"];
+function renderAQI(){
+  document.getElementById('aqiList').innerHTML = aqiPoints.map(p=>{
+    const val = Math.floor(Math.random()*200)+20;
+    let color = val<50?'var(--neon-green)':val<100?'#ffd166':'var(--neon-red)';
+    let label = val<50?'BAIK':val<100?'SEDANG':'TIDAK SEHAT';
+    return `<div class="flex justify-between"><span>${p}</span><span style="color:${color}">${val} — ${label}</span></div>`;
+  }).join('');
+}
+setInterval(renderAQI, 6000); renderAQI();
+
+/* ---------- KIR ---------- */
+function cekKIR(){
+  const berat = parseFloat(document.getElementById('kirBerat').value)||0;
+  const p = parseFloat(document.getElementById('kirPanjang').value)||0;
+  const l = parseFloat(document.getElementById('kirLebar').value)||0;
+  const t = parseFloat(document.getElementById('kirTinggi').value)||0;
+  const layak = berat <= 8000 && p<=12 && l<=2.5 && t<=4.2;
+  document.getElementById('kirResult').innerHTML = layak
+    ? `<span class="text-[var(--neon-green)]">✔ LAYAK JALAN</span> — sesuai batas standar (maks 8000kg, 12x2.5x4.2m)`
+    : `<span class="text-[var(--neon-red)]">✘ TIDAK LAYAK</span> — melebihi batas standar (maks 8000kg, 12x2.5x4.2m)`;
+}
+
+/* ---------- FERRY STATUS ---------- */
+let ferryChartObj;
+function renderFerry(){
+  const ctx = document.getElementById('ferryChart');
+  const data = Array.from({length:7},()=>Math.floor(Math.random()*3*10)/10+0.5);
+  if(ferryChartObj) ferryChartObj.destroy();
+  ferryChartObj = new Chart(ctx, {type:'line', data:{labels:['Sen','Sel','Rab','Kam','Jum','Sab','Min'], datasets:[{label:'Tinggi Gelombang (m)', data, borderColor:'#00e5ff', tension:.4}]}, options:{plugins:{legend:{labels:{color:'#c8d6e5'}}}, scales:{x:{ticks:{color:'#7d8ea3'}},y:{ticks:{color:'#7d8ea3'}}}}});
+  document.getElementById('ferryQueue').innerHTML = `
+    <div>Merak–Bakauheni: <span class="neon-text">${Math.floor(Math.random()*40)} unit antre</span></div>
+    <div>Ketapang–Gilimanuk: <span class="neon-text">${Math.floor(Math.random()*30)} unit antre</span></div>`;
+}
+renderFerry(); setInterval(renderFerry, 10000);
+
+/* ---------- ROUTE RADAR ---------- */
+function cariRute(){
+  const a = document.getElementById('titikA').value.trim();
+  const b = document.getElementById('titikB').value.trim();
+  if(!a||!b) return;
+  const modes = ["🚌 Bus BRT (estimasi 25 menit)","🚕 Angkot rute campuran (35 menit)","🚆 Kereta ringan + jalan kaki (20 menit)","🚗 Kendaraan pribadi via tol (15 menit)"];
+  document.getElementById('ruteResult').innerHTML = `Dari <b>${a}</b> ke <b>${b}</b>, rekomendasi:<br>` + modes[Math.floor(Math.random()*modes.length)];
+}
+
+/* ---------- TRAFFIC SIGNS ---------- */
+const signs = [
+  {ic:'🛑',n:'Stop',d:'Wajib berhenti sebelum melanjutkan perjalanan.'},
+  {ic:'⛔',n:'Dilarang Masuk',d:'Kendaraan dilarang memasuki jalur ini.'},
+  {ic:'🚸',n:'Hati-hati Anak',d:'Area rawan anak-anak menyeberang.'},
+  {ic:'🅿️',n:'Parkir',d:'Zona diperbolehkan parkir kendaraan.'},
+  {ic:'🚳',n:'Dilarang Sepeda',d:'Sepeda dilarang melintas di jalur ini.'},
+  {ic:'🚷',n:'Dilarang Pejalan Kaki',d:'Pejalan kaki dilarang melintas.'},
+  {ic:'⚠️',n:'Peringatan Umum',d:'Ada potensi bahaya di depan, kurangi kecepatan.'},
+  {ic:'↩️',n:'Putar Balik',d:'Titik yang diperbolehkan untuk putar balik.'},
+  {ic:'🚦',n:'Lampu Lalu Lintas',d:'Ikuti sinyal lampu lalu lintas di depan.'},
+  {ic:'🛣️',n:'Jalan Tol',d:'Akses masuk menuju jalan bebas hambatan.'},
+  {ic:'🚧',n:'Konstruksi',d:'Ada perbaikan jalan, kurangi kecepatan.'},
+  {ic:'🌉',n:'Jembatan',d:'Struktur jembatan di depan, perhatikan beban.'},
+  {ic:'🚥',n:'Zona Sekolah',d:'Kurangi kecepatan, dekat area sekolah.'},
+  {ic:'🐄',n:'Hewan Menyeberang',d:'Waspada hewan ternak melintas jalan.'},
+  {ic:'🌀',n:'Jalan Berliku',d:'Jalan berkelok, kurangi kecepatan.'},
+  {ic:'⛰️',n:'Turunan Tajam',d:'Waspada turunan curam di depan.'},
+  {ic:'🚤',n:'Dermaga',d:'Akses menuju area pelabuhan/dermaga.'},
+  {ic:'🚁',n:'Zona Darurat',d:'Area evakuasi/pendaratan darurat.'},
+  {ic:'📵',n:'Dilarang Klakson',d:'Zona senyap, dilarang membunyikan klakson.'},
+  {ic:'🛞',n:'Batas Kecepatan',d:'Kecepatan maksimum yang diizinkan di ruas ini.'}
+];
+const signGrid = document.getElementById('signGrid');
+signs.forEach(s=>{
+  const b = document.createElement('button');
+  b.className='glass p-2 text-2xl rounded hover:scale-110 transition';
+  b.textContent = s.ic;
+  b.onclick=()=>{ document.getElementById('signExplain').innerHTML = `<b>${s.ic} ${s.n}</b>: ${s.d}`; };
+  signGrid.appendChild(b);
+});
+
+/* ---------- PANIC BUTTON ---------- */
+function panicButton(){
+  Swal.fire({
+    title:'🚨 KONTAK DARURAT', color:'#c8d6e5', background:'#0d141e',
+    html:`<div class="text-left font-mono text-sm">
+      🚑 Ambulans: <b>118 / 119</b><br>
+      👮 Polisi: <b>110</b><br>
+      🚒 Pemadam Kebakaran: <b>113</b><br>
+      ☎️ Panggilan Darurat Nasional: <b>112</b>
+    </div>`, confirmButtonText:'Tutup'
+  });
+  unlockAchievement('panic_pro');
+}
+
+/* =========================================================================
+   ZONA B: GAMES
+   ========================================================================= */
+document.getElementById('gameTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.game-tab-btn'); if(!btn) return;
+  document.querySelectorAll('.game-tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.game-panel').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('game-'+btn.dataset.game).classList.remove('hidden');
+});
+
+function renderGameStats(){
+  const labels = {g1:'Cyber Snake', g2:'Space Invaders', g3:'Traffic Clicker', g4:'Memory Match', g5:'Trivia Quiz'};
+  document.getElementById('gameStatsPanel').innerHTML = Object.keys(labels).map(k=>{
+    const s = state.gameStats[k];
+    const ping = Math.floor(Math.random()*40)+15;
+    return `<div class="border-b border-[var(--panel-border)] pb-1 mb-1">
+      <b>${labels[k]}</b><br>Main: ${s.plays} | Best: ${s.best} | Ping: ${ping}ms
+    </div>`;
+  }).join('');
+}
+renderGameStats(); setInterval(renderGameStats, 4000);
+
+/* ----- GAME 1: CYBER SNAKE ----- */
+(function(){
+  const c = document.getElementById('snakeCanvas'); const ctx = c.getContext('2d');
+  const grid = 20; let snake, dir, food, power, score, loop, running=false;
+  function reset(){
+    snake = [{x:8,y:8}]; dir={x:1,y:0}; score=0; running=true;
+    food = randCell(); power = Math.random()>0.6 ? randCell() : null;
+  }
+  function randCell(){ return {x:Math.floor(Math.random()*20), y:Math.floor(Math.random()*20)}; }
+  document.addEventListener('keydown', e=>{
+    if(!document.getElementById('game-g1') || document.getElementById('game-g1').classList.contains('hidden')) return;
+    if(e.key==='ArrowUp' && dir.y!==1) dir={x:0,y:-1};
+    if(e.key==='ArrowDown' && dir.y!==-1) dir={x:0,y:1};
+    if(e.key==='ArrowLeft' && dir.x!==1) dir={x:-1,y:0};
+    if(e.key==='ArrowRight' && dir.x!==-1) dir={x:1,y:0};
+  });
+  function tick(){
+    if(!running) return;
+    const head = {x:snake[0].x+dir.x, y:snake[0].y+dir.y};
+    if(head.x<0||head.x>=20||head.y<0||head.y>=20||snake.some(s=>s.x===head.x&&s.y===head.y)){
+      running=false;
+      state.gameStats.g1.plays++; if(score>state.gameStats.g1.best) state.gameStats.g1.best=score;
+      addCoins(score*2); saveAll(); Swal.fire({toast:true,position:'top',timer:1500,showConfirmButton:false,title:'Game Over! Skor: '+score,background:'#0d141e',color:'#ff3b5c'});
+      if(score>=10) unlockAchievement('snake_master');
+      setTimeout(reset, 1200);
+      return;
+    }
+    snake.unshift(head);
+    if(head.x===food.x && head.y===food.y){ score++; AudioEngine.gameSFX(600); food=randCell(); }
+    else if(power && head.x===power.x && head.y===power.y){ score+=3; AudioEngine.gameSFX(900); power=null; }
+    else snake.pop();
+    draw();
+  }
+  function draw(){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,400,400);
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--neon-cyan');
+    snake.forEach(s=> ctx.fillRect(s.x*grid, s.y*grid, grid-2, grid-2));
+    ctx.fillStyle='#ff3b5c'; ctx.fillRect(food.x*grid, food.y*grid, grid-2, grid-2);
+    if(power){ ctx.fillStyle='#ffd166'; ctx.fillText('⚡',power.x*grid+2, power.y*grid+16); }
+    ctx.fillStyle='#c8d6e5'; ctx.font='14px monospace'; ctx.fillText('Skor: '+score, 8, 16);
+  }
+  reset(); draw();
+  setInterval(tick, 140);
+})();
+
+/* ----- GAME 2: SPACE INVADERS MINIMALIS ----- */
+(function(){
+  const c = document.getElementById('invadersCanvas'); const ctx = c.getContext('2d');
+  let player, bullets, enemies, lives, score, dir=1, level=1;
+  function reset(){
+    player = {x:180, y:380, w:40}; bullets=[]; lives=3; score=0; level=1;
+    spawnEnemies();
+  }
+  function spawnEnemies(){
+    enemies=[];
+    for(let r=0;r<3;r++) for(let col=0;col<7;col++) enemies.push({x:30+col*45, y:30+r*30, alive:true});
+  }
+  const keys={};
+  document.addEventListener('keydown', e=>{ keys[e.key]=true; if(e.key===' ') shoot(); });
+  document.addEventListener('keyup', e=>{ keys[e.key]=false; });
+  function shoot(){
+    if(document.getElementById('game-g2').classList.contains('hidden')) return;
+    bullets.push({x:player.x+18, y:player.y}); AudioEngine.gameSFX(1200);
+  }
+  function tick(){
+    if(keys['ArrowLeft']) player.x = Math.max(0, player.x-5);
+    if(keys['ArrowRight']) player.x = Math.min(360, player.x+5);
+    bullets.forEach(b=> b.y -= 8); bullets = bullets.filter(b=>b.y>0);
+    let hitEdge=false;
+    enemies.forEach(en=>{ if(!en.alive) return; en.x += dir*0.4*level; if(en.x<0||en.x>380) hitEdge=true; });
+    if(hitEdge){ dir*=-1; enemies.forEach(en=> en.y += 10); }
+    bullets.forEach(b=>{
+      enemies.forEach(en=>{
+        if(en.alive && Math.abs(b.x-en.x)<15 && Math.abs(b.y-en.y)<12){ en.alive=false; b.y=-100; score+=10; AudioEngine.gameSFX(300); }
+      });
+    });
+    if(enemies.some(en=>en.alive && en.y>360)){ loseLife(); }
+    if(enemies.every(en=>!en.alive)){ level++; spawnEnemies(); }
+    draw();
+  }
+  function loseLife(){
+    lives--; spawnEnemies();
+    if(lives<=0){
+      state.gameStats.g2.plays++; if(score>state.gameStats.g2.best) state.gameStats.g2.best=score;
+      addCoins(score); saveAll();
+      Swal.fire({toast:true,position:'top',timer:1500,showConfirmButton:false,title:'Game Over! Skor: '+score,background:'#0d141e',color:'#ff3b5c'});
+      if(score>=100) unlockAchievement('space_ace');
+      reset();
+    }
+  }
+  function draw(){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,400,400);
+    ctx.fillStyle='#00e5ff'; ctx.fillRect(player.x, player.y, 40, 10);
+    ctx.fillStyle='#ffd166'; bullets.forEach(b=> ctx.fillRect(b.x, b.y, 3, 10));
+    ctx.fillStyle='#ff3b5c'; enemies.forEach(en=>{ if(en.alive) ctx.fillText('👾', en.x, en.y); });
+    ctx.fillStyle='#c8d6e5'; ctx.font='14px monospace';
+    ctx.fillText(`Skor: ${score}  Nyawa: ${lives}  Level: ${level}`, 8, 16);
+  }
+  reset();
+  setInterval(tick, 40);
+})();
+
+/* ----- GAME 3: TRAFFIC JAM CLICKER ----- */
+const upgradeDefs = {
+  petugas:{name:'Petugas Dishub', base:15, add:1}, tol:{name:'Jalur Tol', base:100, add:5}, lampu:{name:'Lampu Otomatis', base:500, add:20}
+};
+function upgradeCost(k){ return Math.floor(upgradeDefs[k].base * Math.pow(1.15, state.upgrades[k])); }
+function buyUpgrade(k){
+  const cost = upgradeCost(k);
+  if(state.coins < cost){ Swal.fire({toast:true,position:'top',timer:1200,showConfirmButton:false,title:'Koin tidak cukup',background:'#0d141e',color:'#ff3b5c'}); return; }
+  state.coins -= cost; state.upgrades[k]++; state.clickerPerSec += upgradeDefs[k].add;
+  saveAll(); renderUpgrades(); updateCoinDisplay();
+  if(k==='lampu') unlockAchievement('traffic_master');
+}
+function renderUpgrades(){
+  document.getElementById('upgradeList').innerHTML = Object.keys(upgradeDefs).map(k=>`
+    <div class="glass p-2 rounded">
+      <div class="font-display text-xs">${upgradeDefs[k].name}</div>
+      <div class="text-[10px] text-[var(--text-dim)]">Lv.${state.upgrades[k]} • +${upgradeDefs[k].add}/dtk</div>
+      <button onclick="buyUpgrade('${k}')" class="chip mt-1 w-full">Beli (${upgradeCost(k)})</button>
+    </div>`).join('');
+  document.getElementById('clickerPerSec').textContent = state.clickerPerSec;
+}
+document.getElementById('clickerBtn').addEventListener('click', ()=>{
+  addCoins(1); AudioEngine.gameSFX(500);
+  state.gameStats.g3.plays++;
+  unlockAchievement('first_click');
+});
+function addCoins(n){ state.coins += n; updateCoinDisplay(); document.getElementById('clickerCoin').textContent = Math.floor(state.coins); saveAll(); }
+setInterval(()=>{ if(state.clickerPerSec>0) addCoins(state.clickerPerSec); }, 1000);
+renderUpgrades(); updateCoinDisplay();
+document.getElementById('clickerCoin').textContent = Math.floor(state.coins);
+
+/* ----- SHOP ----- */
+const shopItems = [
+  {id:'skin_neon', name:'Skin Lobby: Neon City', price:200},
+  {id:'skin_sunset', name:'Skin Lobby: Sunset Harbor', price:350},
+  {id:'avatar_robot', name:'Avatar: Robot Petugas', price:150}
+];
+function renderShop(){
+  const owned = store.get('owned', []);
+  document.getElementById('shopList').innerHTML = shopItems.map(it=>{
+    const has = owned.includes(it.id);
+    return `<div class="glass p-2 rounded flex justify-between items-center">
+      <span>${it.name}</span>
+      ${has? '<span class="chip">✔ Dimiliki</span>' : `<button onclick="buyShop('${it.id}',${it.price})" class="chip">${it.price} koin</button>`}
+    </div>`;
+  }).join('');
+}
+function buyShop(id, price){
+  if(state.coins<price){ Swal.fire({toast:true,position:'top',timer:1200,showConfirmButton:false,title:'Koin tidak cukup',background:'#0d141e',color:'#ff3b5c'}); return; }
+  state.coins-=price; saveAll(); updateCoinDisplay();
+  const owned = store.get('owned', []); owned.push(id); store.set('owned', owned);
+  renderShop();
+}
+renderShop();
+
+/* ----- DAILY MISSIONS ----- */
+function renderMissions(){
+  const today = new Date().toDateString();
+  let missions = store.get('missions', null);
+  if(!missions || missions.date !== today){
+    const pool = ['Klik 20x di Traffic Clicker','Mainkan Cyber Snake 1x','Jawab 5 soal Trivia Quiz'];
+    missions = {date: today, list: pool.map(m=>({text:m, claimed:false}))};
+    store.set('missions', missions);
+  }
+  document.getElementById('dailyMissions').innerHTML = missions.list.map((m,i)=>`
+    <div class="flex justify-between items-center glass p-2 rounded">
+      <span class="${m.claimed?'line-through text-[var(--text-dim)]':''}">${m.text}</span>
+      <button onclick="claimMission(${i})" class="chip" ${m.claimed?'disabled':''}>${m.claimed?'✔':'Claim'}</button>
+    </div>`).join('');
+}
+function claimMission(i){
+  const missions = store.get('missions'); missions.list[i].claimed=true; store.set('missions', missions);
+  addCoins(50); renderMissions();
+}
+renderMissions();
+
+/* ----- GAME MASTER / CHEAT ----- */
+function toggleCheatPanel(){ document.getElementById('cheatPanel').classList.toggle('hidden'); }
+function cheatAddCoin(){ addCoins(1000); }
+function cheatUnlockAll(){ Object.keys(achievementDefs).forEach(k=>unlockAchievement(k, true)); renderAchievements(); }
+
+/* ----- GAME 4: MEMORY MATCH ----- */
+let memoryState = {cards:[], flipped:[], matched:[], moves:0, timer:60, interval:null};
+const memIcons = ['fa-car','fa-bus','fa-train','fa-plane','fa-ship','fa-traffic-light','fa-road','fa-anchor'];
+function initMemory(){
+  clearInterval(memoryState.interval);
+  const icons = [...memIcons, ...memIcons].sort(()=>Math.random()-0.5);
+  memoryState = {cards:icons, flipped:[], matched:[], moves:0, timer:60};
+  document.getElementById('memoryMoves').textContent = 0;
+  document.getElementById('memoryTimer').textContent = 60;
+  renderMemory();
+  memoryState.interval = setInterval(()=>{
+    memoryState.timer--; document.getElementById('memoryTimer').textContent = memoryState.timer;
+    if(memoryState.timer<=0){ clearInterval(memoryState.interval); endMemory(false); }
+  }, 1000);
+}
+function renderMemory(){
+  document.getElementById('memoryGrid').innerHTML = memoryState.cards.map((ic,i)=>{
+    const shown = memoryState.flipped.includes(i) || memoryState.matched.includes(i);
+    return `<div onclick="flipCard(${i})" class="card-flip aspect-square glass rounded flex items-center justify-center text-2xl cursor-pointer ${memoryState.matched.includes(i)?'opacity-40':''}">
+      ${shown ? `<i class="fa-solid ${ic}"></i>` : '❓'}
+    </div>`;
+  }).join('');
+}
+function flipCard(i){
+  if(memoryState.flipped.length>=2 || memoryState.flipped.includes(i) || memoryState.matched.includes(i)) return;
+  memoryState.flipped.push(i); renderMemory();
+  if(memoryState.flipped.length===2){
+    memoryState.moves++; document.getElementById('memoryMoves').textContent = memoryState.moves;
+    const [a,b] = memoryState.flipped;
+    if(memoryState.cards[a]===memoryState.cards[b]){
+      memoryState.matched.push(a,b); memoryState.flipped=[];
+      AudioEngine.gameSFX(700);
+      if(memoryState.matched.length===memoryState.cards.length) endMemory(true);
+    } else {
+      setTimeout(()=>{ memoryState.flipped=[]; renderMemory(); }, 700);
+    }
+  }
+}
+function endMemory(win){
+  clearInterval(memoryState.interval);
+  state.gameStats.g4.plays++;
+  if(win){ state.gameStats.g4.wins++; addCoins(80); unlockAchievement('memory_genius'); }
+  saveAll();
+  Swal.fire({toast:true,position:'top',timer:1600,showConfirmButton:false,title:win?'Selesai! +80 koin':'Waktu habis!',background:'#0d141e',color: win?'#39ff88':'#ff3b5c'});
+}
+initMemory();
+
+/* ----- GAME 5: TRIVIA QUIZ ----- */
+const quizBank = [
+  {q:"Role hero yang fokus menyerang musuh dari jarak jauh dengan damage tinggi disebut?", opts:["Tank","Marksman","Support","Jungler"], a:1},
+  {q:"Role yang bertugas menahan damage di depan tim disebut?", opts:["Assassin","Tank","Mage","Marksman"], a:1},
+  {q:"Area hutan di peta MOBA biasa disebut?", opts:["Lane","Jungle","River","Base"], a:1},
+  {q:"Item yang menambah kecepatan serang biasanya masuk kategori?", opts:["Attack Speed","Cooldown Reduction","Movement Speed","HP Regen"], a:0},
+  {q:"Objektif netral yang memberi buff besar untuk tim biasa disebut?", opts:["Turret","Lord/Buff Utama","Base","Shop"], a:1},
+  {q:"Formasi 1 hero di tiap jalur disebut strategi?", opts:["Split Push","Team Fight","Farming","Roaming"], a:0},
+  {q:"Hero dengan burst damage tinggi tapi HP rendah biasa disebut?", opts:["Tank","Assassin","Support","Fighter"], a:1},
+  {q:"Struktur pertahanan di sepanjang lane disebut?", opts:["Turret","Base","Fountain","Shop"], a:0},
+  {q:"Peran yang fokus memberi shield/heal ke rekan tim disebut?", opts:["Fighter","Support","Tank","Marksman"], a:1},
+  {q:"Kondisi menang saat markas musuh hancur disebut?", opts:["Draw","Victory","Surrender","Timeout"], a:1}
+];
+let quiz = {i:0, score:0, timer:10, interval:null};
+function startQuiz(){
+  quiz = {i:0, score:0, timer:10}; clearInterval(quiz.interval);
+  document.getElementById('quizScore').textContent = 0;
+  showQuizQuestion();
+}
+function showQuizQuestion(){
+  clearInterval(quiz.interval);
+  if(quiz.i>=quizBank.length || quiz.i>=10){ endQuiz(); return; }
+  document.getElementById('quizNum').textContent = quiz.i+1;
+  const q = quizBank[quiz.i];
+  document.getElementById('quizQuestion').textContent = q.q;
+  document.getElementById('quizOptions').innerHTML = q.opts.map((o,idx)=>`<button onclick="answerQuiz(${idx})" class="chip py-2">${o}</button>`).join('');
+  quiz.timer = 10; document.getElementById('quizTimer').textContent = quiz.timer;
+  quiz.interval = setInterval(()=>{
+    quiz.timer--; document.getElementById('quizTimer').textContent = quiz.timer;
+    if(quiz.timer<=0){ answerQuiz(-1); }
+  }, 1000);
+}
+function answerQuiz(idx){
+  clearInterval(quiz.interval);
+  const q = quizBank[quiz.i];
+  if(idx===q.a){ quiz.score+=10; AudioEngine.gameSFX(800); document.getElementById('quizScore').textContent = quiz.score; }
+  quiz.i++;
+  setTimeout(showQuizQuestion, 400);
+}
+function endQuiz(){
+  state.gameStats.g5.plays++; if(quiz.score>state.gameStats.g5.best) state.gameStats.g5.best=quiz.score;
+  addCoins(quiz.score); saveAll();
+  document.getElementById('quizQuestion').textContent = `Quiz selesai! Skor akhir: ${quiz.score}`;
+  document.getElementById('quizOptions').innerHTML = `<button onclick="startQuiz()" class="chip py-2 sm:col-span-2">MAIN LAGI</button>`;
+  if(quiz.score>=70) unlockAchievement('quiz_whiz');
+}
+startQuiz();
+
+/* =========================================================================
+   ZONA C: COMMUNITY
+   ========================================================================= */
+const fakeNames = ["RizkyGG","AyuNight","BangJago","SiPetirBiru","NoobMaster99","KakGeming","DishubFans","XenoStrike","LunaVerse","TokoKoin","ProJungler","AnakBRT","PetirTilang","RajaLampu","MimiMabar"];
+const chatPool = ["mabar bang🔥","rank bareng yuk","webnya keren parah😂","ada yg main clicker gak","AI nya lucu bgt","gg ez","siapa top 1 leaderboard","ini web dishub apa arcade wkwk","tips snake dong","request game baru dong min","gass grind koin","zona A nya real time bgt","cctv nya asik buat iseng","quiz susah bgt soal ke-7","upgrade lampu otomatis worth it","ada yg tau cheat code gak","chill dulu ah","btw admin keren bikin web ini","siapa yg udh unlock semua badge","selamat pagi semua"];
+function pushChat(user, msg, self=false){
+  const div = document.createElement('div');
+  div.innerHTML = `<span class="${self?'text-[var(--neon-orange)]':'neon-text'}">${user}:</span> ${msg}`;
+  const box = document.getElementById('lobbyChat'); box.appendChild(div); box.scrollTop = box.scrollHeight;
+}
+setInterval(()=>{
+  pushChat(fakeNames[Math.floor(Math.random()*fakeNames.length)], chatPool[Math.floor(Math.random()*chatPool.length)]);
+}, 3500);
+function sendLobbyMsg(){
+  const inp = document.getElementById('lobbyInput'); if(!inp.value.trim()) return;
+  pushChat('Anda', inp.value.trim(), true); inp.value='';
+  unlockAchievement('chat_legend_check');
+}
+
+/* ----- LEADERBOARD ----- */
+function genFakeLB(){
+  return fakeNames.map(n=>({name:n, score: Math.floor(Math.random()*3000)+100}));
+}
+let lbFilter='all', lbGame='all';
+function renderLB(){
+  let data = genFakeLB();
+  data.push({name:'Anda', score: Object.values(state.gameStats).reduce((a,s)=>a+s.best,0)});
+  data.sort((a,b)=>b.score-a.score);
+  document.getElementById('lbBody').innerHTML = data.slice(0,12).map((d,i)=>`<tr class="${d.name==='Anda'?'text-[var(--neon-orange)]':''}"><td>${i+1}</td><td>${d.name}</td><td class="text-right">${d.score}</td></tr>`).join('');
+  if(data.slice(0,3).some(d=>d.name==='Anda')) unlockAchievement('leaderboard_topper');
+}
+document.getElementById('lbFilters').addEventListener('click', e=>{ const b=e.target.closest('.lb-filter'); if(!b)return; document.querySelectorAll('.lb-filter').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderLB(); });
+document.getElementById('lbGameFilters').addEventListener('click', e=>{ const b=e.target.closest('.lb-game'); if(!b)return; document.querySelectorAll('.lb-game').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderLB(); });
+renderLB(); setInterval(renderLB, 15000);
+
+/* ----- ACHIEVEMENTS ----- */
+const achievementDefs = {
+  first_click:{name:'First Click', icon:'fa-hand-pointer'},
+  traffic_master:{name:'Traffic Master', icon:'fa-road'},
+  ai_chatty:{name:'AI Chatty', icon:'fa-comment-dots'},
+  snake_master:{name:'Snake Master', icon:'fa-worm'},
+  space_ace:{name:'Space Ace', icon:'fa-rocket'},
+  memory_genius:{name:'Memory Genius', icon:'fa-brain'},
+  quiz_whiz:{name:'Quiz Whiz', icon:'fa-circle-question'},
+  theme_explorer:{name:'Theme Explorer', icon:'fa-palette'},
+  panic_pro:{name:'Panic Pro', icon:'fa-triangle-exclamation'},
+  note_taker:{name:'Note Taker', icon:'fa-note-sticky'},
+  chat_legend_check:{name:'Chat Legend', icon:'fa-comments'},
+  leaderboard_topper:{name:'Leaderboard Topper', icon:'fa-crown'},
+  secret_finder:{name:'Secret Finder', icon:'fa-key'},
+  night_owl:{name:'Night Owl', icon:'fa-moon'},
+  tycoon:{name:'Tycoon', icon:'fa-coins'}
+};
+function unlockAchievement(id, silent){
+  if(state.achievements.includes(id)) return;
+  state.achievements.push(id); saveAll(); renderAchievements();
+  if(!silent) Swal.fire({toast:true, position:'top-end', timer:2000, showConfirmButton:false, title:'🏆 Badge terbuka: '+(achievementDefs[id]?.name||id), background:'#0d141e', color:'#ffd166'});
+}
+function renderAchievements(){
+  document.getElementById('achievementGrid').innerHTML = Object.keys(achievementDefs).map(id=>{
+    const un = state.achievements.includes(id); const d = achievementDefs[id];
+    return `<div class="glass p-2 rounded ${un?'':'badge-locked'}"><i class="fa-solid ${d.icon} text-xl block mb-1"></i><span class="text-[10px]">${d.name}</span></div>`;
+  }).join('');
+}
+renderAchievements();
+if(new Date().getHours()>=0 && new Date().getHours()<5) unlockAchievement('night_owl', true);
+if(state.coins>2000) unlockAchievement('tycoon', true);
+
+/* =========================================================================
+   ZONA D: OFFICE TOOLS
+   ========================================================================= */
+function hitungVC(){
+  const v = parseFloat(document.getElementById('vcVolume').value)||0;
+  const cap = parseFloat(document.getElementById('vcCapacity').value)||1;
+  const ratio = (v/cap).toFixed(2);
+  let label = ratio<0.6?'LANCAR (LOS A-B)': ratio<0.85?'STABIL (LOS C)': ratio<1?'PADAT (LOS D-E)':'MACET/JENUH (LOS F)';
+  document.getElementById('vcResult').innerHTML = `V/C Ratio: <b class="neon-text">${ratio}</b> — ${label}`;
+}
+
+let swInterval=null, swElapsed=0, swRunning=false;
+function swToggle(){
+  swRunning=!swRunning;
+  document.getElementById('swBtn').textContent = swRunning?'PAUSE':'START STOPWATCH';
+  if(swRunning){ swInterval = setInterval(()=>{ swElapsed+=100; renderSW(); }, 100); }
+  else clearInterval(swInterval);
+}
+function swReset(){ swRunning=false; clearInterval(swInterval); swElapsed=0; document.getElementById('swBtn').textContent='START STOPWATCH'; renderSW(); }
+function renderSW(){
+  const m = Math.floor(swElapsed/60000); const s = Math.floor((swElapsed%60000)/1000); const ms = Math.floor((swElapsed%1000)/100);
+  document.getElementById('swDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${ms}`;
+}
+renderSW();
+
+let customTimerInterval=null;
+function startCustomTimer(){
+  clearInterval(customTimerInterval);
+  let secs = parseInt(document.getElementById('timerInput').value)||30;
+  document.getElementById('timerDisplay').textContent = secs;
+  customTimerInterval = setInterval(()=>{
+    secs--; document.getElementById('timerDisplay').textContent = secs;
+    if(secs<=0){ clearInterval(customTimerInterval); Swal.fire({toast:true,position:'top',timer:1500,showConfirmButton:false,title:'⏰ Timer selesai!',background:'#0d141e',color:'#00e5ff'}); }
+  }, 1000);
+}
+
+function addNote(){
+  const v = document.getElementById('noteInput').value.trim(); if(!v) return;
+  state.notes.unshift(v); saveAll(); renderNotes(); document.getElementById('noteInput').value='';
+  unlockAchievement('note_taker');
+}
+function delNote(i){ state.notes.splice(i,1); saveAll(); renderNotes(); }
+function renderNotes(){
+  document.getElementById('noteList').innerHTML = state.notes.map((n,i)=>`<div class="flex justify-between glass p-1.5 rounded"><span>${n}</span><button onclick="delNote(${i})" class="text-[var(--neon-red)]"><i class="fa-solid fa-trash"></i></button></div>`).join('') || '<div class="text-[var(--text-dim)]">Belum ada catatan</div>';
+}
+renderNotes();
+
+const unitDefs = {
+  speed: {units:{Knot:1.852, "Km/h":1, Mph:1.60934}, base:'Km/h'},
+  distance: {units:{Meter:0.001, Kilometer:1, Mil:1.60934}, base:'Kilometer'},
+  weight: {units:{Kg:1, Ton:1000, Lb:0.453592}, base:'Kg'}
+};
+function renderUnitConverter(){
+  const type = document.getElementById('unitType').value;
+  const units = Object.keys(unitDefs[type].units);
+  document.getElementById('unitFrom').innerHTML = units.map(u=>`<option>${u}</option>`).join('');
+  document.getElementById('unitTo').innerHTML = units.map(u=>`<option>${u}</option>`).join('');
+  document.getElementById('unitTo').selectedIndex = 1;
+  doConvert();
+}
+function doConvert(){
+  const type = document.getElementById('unitType').value;
+  const val = parseFloat(document.getElementById('unitInput').value)||0;
+  const from = document.getElementById('unitFrom').value, to = document.getElementById('unitTo').value;
+  const defs = unitDefs[type].units;
+  const baseVal = val * defs[from];
+  const result = baseVal / defs[to];
+  document.getElementById('unitResult').textContent = `${val} ${from} = ${result.toFixed(4)} ${to}`;
+}
+renderUnitConverter();
+
+function addAgenda(){
+  const v = document.getElementById('agendaInput').value.trim(); const t = document.getElementById('agendaTime').value;
+  if(!v) return;
+  state.agenda.push({text:v, time:t||'--:--', done:false}); saveAll(); renderAgenda();
+  document.getElementById('agendaInput').value='';
+}
+function toggleAgenda(i){ state.agenda[i].done=!state.agenda[i].done; saveAll(); renderAgenda(); }
+function delAgenda(i){ state.agenda.splice(i,1); saveAll(); renderAgenda(); }
+function renderAgenda(){
+  const sorted = state.agenda.map((a,i)=>({...a,i})).sort((a,b)=>a.time.localeCompare(b.time));
+  document.getElementById('agendaList').innerHTML = sorted.map(a=>`
+    <div class="flex justify-between items-center glass p-2 rounded">
+      <span class="${a.done?'line-through text-[var(--text-dim)]':''}">⏰ ${a.time} — ${a.text}</span>
+      <div class="flex gap-2">
+        <button onclick="toggleAgenda(${a.i})" class="chip">${a.done?'✔':'Selesai'}</button>
+        <button onclick="delAgenda(${a.i})" class="text-[var(--neon-red)]"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>`).join('') || '<div class="text-[var(--text-dim)]">Belum ada agenda</div>';
+}
+renderAgenda();
+
+/* =========================================================================
+   ZONA E: SETTINGS / AI CONFIG
+   ========================================================================= */
+function setAIMode(mode){
+  state.aiMode = mode; saveAll();
+  document.getElementById('modeLocalBtn').classList.toggle('active', mode==='local');
+  document.getElementById('modeLiveBtn').classList.toggle('active', mode==='live');
+  document.getElementById('aiModeTag').textContent = mode==='local' ? 'LOCAL' : 'LIVE API';
+}
+setAIMode(state.aiMode);
+document.getElementById('apiKeyInput').value = state.apiKey;
+document.getElementById('apiProvider').value = state.apiProvider;
+function saveAPIKey(){
+  state.apiKey = document.getElementById('apiKeyInput').value;
+  state.apiProvider = document.getElementById('apiProvider').value;
+  saveAll();
+  Swal.fire({toast:true,position:'top',timer:1500,showConfirmButton:false,title:'Konfigurasi AI disimpan',background:'#0d141e',color:'#39ff88'});
+}
+function clearCache(){
+  Swal.fire({title:'Reset semua progres?', text:'Koin, achievement, dan catatan akan dihapus permanen dari browser ini.', icon:'warning', showCancelButton:true, confirmButtonText:'Ya, reset', background:'#0d141e', color:'#c8d6e5'}).then(res=>{
+    if(res.isConfirmed){ localStorage.clear(); location.reload(); }
+  });
+}
+
+/* =========================================================================
+   CHRONOS AI — LOCAL PATTERN ENGINE + LIVE API HOOK + REAL COMMAND ENGINE
+   ========================================================================= */
+function toggleChat(){
+  const p = document.getElementById('chatPanel');
+  const isHidden = p.classList.contains('hidden');
+  p.classList.toggle('hidden'); p.style.display = isHidden ? 'flex' : 'none';
+  if(isHidden && document.getElementById('chatMessages').children.length===0){
+    aiSay("Halo! Saya Chronos AI 🤖. Saya bisa jawab pertanyaan, DAN mengeksekusi perintah langsung di web ini — contoh: 'buka zona B', 'mainkan snake', 'nyalakan bgm', 'cek plat B 1234 XY', 'hitung parkir 3 jam', 'catat: rapat sore ini', 'ringkasan harian'. Ketik 'help' untuk daftar lengkap.");
+  }
+  unlockAchievement('ai_chatty');
+}
+const quickReplyTags = ["Ringkasan Harian","Cek Macet","Rekomendasi Game","Jokes Hari Ini"];
+document.getElementById('quickReplies').innerHTML = quickReplyTags.map(t=>`<button class="chip" onclick="quickReply('${t}')">${t}</button>`).join('');
+function quickReply(t){ document.getElementById('chatInput').value = t; sendChat(); }
+
+/* ---------- HELPERS: navigate zones/games programmatically ---------- */
+function switchZone(zoneId){
+  document.querySelectorAll('#tabNav .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.zone===zoneId));
+  document.querySelectorAll('.zone').forEach(z=>z.classList.toggle('active', z.id===zoneId));
+}
+function switchGame(gKey){
+  switchZone('zoneB');
+  document.querySelectorAll('.game-tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.game===gKey));
+  document.querySelectorAll('.game-panel').forEach(p=>p.classList.toggle('hidden', p.id!== 'game-'+gKey));
+}
+
+/* ---------- REAL COMMAND ENGINE ----------
+   Setiap perintah di sini benar-benar menjalankan fungsi/aksi di web,
+   bukan cuma teks jawaban. Dicek dulu sebelum jatuh ke Q&A lokal/Live API. */
+const commandEngine = [
+  { test:/plat\s+([a-z0-9]{1,3}\s?\d{1,4}\s?[a-z]{0,3})/i, run:(m)=>{
+      const plate = m[1].trim().toUpperCase();
+      switchZone('zoneA'); document.getElementById('platInput').value = plate; checkTilang();
+      return `🔍 Saya cek plat ${plate} lewat E-Tilang Checker (Zona A dibuka otomatis). ${document.getElementById('tilangResult').textContent}`;
+  }},
+  { test:/parkir\D*(\d+)\s*jam/i, run:(m)=>{
+      const jam = m[1]; switchZone('zoneA'); document.getElementById('parkirJam').value = jam; hitungParkir();
+      return `🅿️ Saya hitungkan parkir ${jam} jam di Zona A. ${document.getElementById('parkirResult').textContent}`;
+  }},
+  { test:/lampu.*(merah|kuning|hijau)|(merah|kuning|hijau).*lampu/i, run:(m)=>{
+      const color = (m[1]||m[2]).toLowerCase(); const map={merah:'red',kuning:'yellow',hijau:'green'};
+      switchZone('zoneA'); setLight(map[color]);
+      return `🚦 Lampu lalu lintas simulasi saya ubah jadi ${color.toUpperCase()}.`;
+  }},
+  { test:/tema.*(cyberpunk|dark|light|mint)|(cyberpunk|dark|light|mint).*tema/i, run:(m)=>{
+      const t = (m[1]||m[2]).toLowerCase(); setTheme(t);
+      return `🎨 Tema web sudah saya ganti ke ${t}.`;
+  }},
+  { test:/nyala(kan)?\s*bgm|play\s*bgm|putar\s*musik|hidupkan\s*musik/i, run:()=>{
+      if(!AudioEngine.isPlaying()) toggleBGM();
+      return "🎵 BGM synthwave saya nyalakan. Cek visualizer di Zona E.";
+  }},
+  { test:/matikan\s*bgm|stop\s*bgm|stop\s*musik|hentikan\s*musik/i, run:()=>{
+      if(AudioEngine.isPlaying()) toggleBGM();
+      return "🔇 BGM saya matikan.";
+  }},
+  { test:/main(kan)?\s*(ular|snake)/i, run:()=>{ switchGame('g1'); return "🐍 Cyber Snake dibuka di Zona B, selamat bermain!"; }},
+  { test:/main(kan)?\s*(invaders|tembak|pesawat)/i, run:()=>{ switchGame('g2'); return "👾 Space Invaders dibuka di Zona B!"; }},
+  { test:/main(kan)?\s*(clicker|koin|tycoon)/i, run:()=>{ switchGame('g3'); return "🚗 Traffic Jam Clicker dibuka di Zona B!"; }},
+  { test:/main(kan)?\s*(memory|kartu)/i, run:()=>{ switchGame('g4'); return "🧠 Cyber Match Memory dibuka di Zona B!"; }},
+  { test:/main(kan)?\s*(quiz|trivia|kuis)/i, run:()=>{ switchGame('g5'); return "❓ Trivia Quiz dibuka di Zona B!"; }},
+  { test:/buka\s*zona\s*a|zona\s*smart\s*city/i, run:()=>{ switchZone('zoneA'); return "📂 Zona A (Smart City & Dishub Hub) dibuka."; }},
+  { test:/buka\s*zona\s*b|zona\s*game|arcade/i, run:()=>{ switchZone('zoneB'); return "📂 Zona B (Arcade & Game) dibuka."; }},
+  { test:/buka\s*zona\s*c|zona\s*komunitas|community/i, run:()=>{ switchZone('zoneC'); return "📂 Zona C (Komunitas & Sosial) dibuka."; }},
+  { test:/buka\s*zona\s*d|zona\s*tools|zona\s*kantor/i, run:()=>{ switchZone('zoneD'); return "📂 Zona D (Office Tools) dibuka."; }},
+  { test:/buka\s*zona\s*e|zona\s*setting/i, run:()=>{ switchZone('zoneE'); return "📂 Zona E (System Control) dibuka."; }},
+  { test:/catat(?:an)?[:\-]?\s+(.{3,})/i, run:(m)=>{
+      const txt = m[1].trim(); switchZone('zoneD'); document.getElementById('noteInput').value = txt; addNote();
+      return `📝 Catatan ditambahkan ke Notepad Internal: "${txt}"`;
+  }},
+  { test:/agenda[:\-]?\s+(.{3,}?)(?:\s+jam\s+(\d{1,2}:\d{2}))?$/i, run:(m)=>{
+      const txt = m[1].trim(); const jam = m[2]||'';
+      switchZone('zoneD'); document.getElementById('agendaInput').value = txt; document.getElementById('agendaTime').value = jam; addAgenda();
+      return `🗓️ Agenda ditambahkan: "${txt}"${jam?' jam '+jam:''}.`;
+  }},
+  { test:/timer\s*(\d+)\s*(detik|menit)/i, run:(m)=>{
+      let secs = parseInt(m[1]); if(m[2]==='menit') secs*=60;
+      switchZone('zoneD'); document.getElementById('timerInput').value = secs; startCustomTimer();
+      return `⏱️ Timer ${secs} detik dimulai di Zona D.`;
+  }},
+  { test:/berapa\s*koin|cek\s*koin|saldo\s*koin/i, run:()=> `💰 Koin Anda saat ini: ${Math.floor(state.coins)}.` },
+  { test:/berapa\s*badge|achievement\s*saya|badge\s*saya/i, run:()=> `🏆 Badge terbuka: ${state.achievements.length}/${Object.keys(achievementDefs).length}.` },
+  { test:/jam\s*berapa|waktu\s*sekarang/i, run:()=> `🕐 Sekarang jam ${new Date().toLocaleTimeString('id-ID')}.` },
+  { test:/screenshot|tangkapan\s*layar/i, run:()=>{ screenshotDashboard(); return "📸 Screenshot dashboard sedang diunduh."; }},
+  { test:/export.*log|unduh.*(chat|log)/i, run:()=>{ exportChatLog(); return "📤 Riwayat chat diekspor ke file .txt."; }},
+  { test:/ringkasan|briefing|rangkuman/i, run:()=> dailyBriefing() },
+];
+function tryExecuteCommand(msg){
+  for(const c of commandEngine){ const m = msg.match(c.test); if(m) return c.run(m); }
+  return null;
+}
+function dailyBriefing(){
+  const now = new Date();
+  const nextAgenda = [...state.agenda].filter(a=>!a.done).sort((a,b)=>a.time.localeCompare(b.time))[0];
+  const missions = store.get('missions', {list:[]});
+  const belumClaim = missions.list.filter(m=>!m.claimed).length;
+  return `📋 RINGKASAN HARIAN — ${now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})}\n`+
+    `• Jam: ${now.toLocaleTimeString('id-ID')}, status lampu lalu lintas: ${lightStateText()}\n`+
+    `• Koin Anda: ${Math.floor(state.coins)} | Badge: ${state.achievements.length}/${Object.keys(achievementDefs).length}\n`+
+    `• Misi harian belum diklaim: ${belumClaim}\n`+
+    `• Agenda terdekat: ${nextAgenda ? nextAgenda.time+' — '+nextAgenda.text : 'tidak ada agenda tersisa'}\n`+
+    `• Cuaca simulasi: cerah berawan, 27–31°C.`;
+}
+
+// 50+ Local pattern intents grouped by category
+const aiPatterns = [
+  {re:/hai|halo|hi|hello/i, r:"Halo juga! Ada yang bisa saya bantu hari ini?"},
+  {re:/nama.*kamu|siapa.*kamu/i, r:"Saya Chronos AI, asisten digital Dishub Cyber-Omni Terminal."},
+  {re:/help|bantuan|perintah/i, r:"Saya bisa jawab pertanyaan biasa (rute bus, tarif parkir, tips game, dll) DAN eksekusi perintah nyata: 'buka zona X', 'mainkan snake/invaders/clicker/memory/quiz', 'nyalakan/matikan bgm', 'ganti tema ke X', 'cek plat B1234XY', 'hitung parkir 3 jam', 'ubah lampu jadi merah', 'catat: teks', 'agenda: teks jam 14:00', 'timer 30 detik', 'berapa koin', 'berapa badge', 'ringkasan harian', 'screenshot', 'export log'."},
+  {re:/rute.*bus|koridor/i, r:"Ada 4 koridor BRT aktif: Koridor 1-4. Cek di Zona A > Peta Rute Angkutan Umum untuk detailnya."},
+  {re:/tilang|denda/i, r:"Denda tilang bervariasi tergantung jenis pelanggaran. Gunakan fitur E-Tilang Checker di Zona A untuk simulasi cek."},
+  {re:/parkir/i, r:"Tarif parkir progresif: Rp3.000 jam pertama, +Rp2.000 tiap jam berikutnya. Coba kalkulatornya di Zona A."},
+  {re:/macet|traffic|lalu lintas/i, r:"Kondisi lalu lintas bisa dipantau di simulator Live Traffic pada Zona A. Saat ini status lampu: "+lightStateText()},
+  {re:/cuaca|weather/i, r:"Cuaca simulasi hari ini: cerah berawan, suhu 27-31°C, potensi hujan ringan sore hari."},
+  {re:/snake/i, r:"Tips Cyber Snake: pantau tepi layar, ambil power-up ⚡ untuk skor ekstra 3x lipat, dan jaga jarak dari ekor sendiri."},
+  {re:/invader|tembak/i, r:"Tips Space Invaders: gerak konsisten ke satu arah sambil tembak beruntun lebih efektif dari diam di tempat."},
+  {re:/clicker|koin/i, r:"Tips Traffic Clicker: prioritaskan beli Petugas Dishub dulu karena murah, baru investasi Jalur Tol dan Lampu Otomatis."},
+  {re:/memory|kartu/i, r:"Tips Memory Match: ingat posisi 2 kartu pertama yang kamu buka, itu kunci menang cepat."},
+  {re:/trivia|kuis|quiz/i, r:"Tips Trivia Quiz: fokus pada role dan mekanik umum MOBA, banyak soal soal konsep dasar."},
+  {re:/cheat|rahasia|secret/i, r:"🔑 Command rahasia: ketik 'matrix' di chat ini untuk easter egg, atau buka Game Master Control di Zona B untuk cheat resmi."},
+  {re:/jokes|lelucon/i, r:"Kenapa lampu lalu lintas gak pernah stres? Karena dia selalu tahu kapan harus 'berhenti' sejenak. 😄"},
+  {re:/badge|achievement/i, r:"Ada 15 badge yang bisa di-unlock! Cek progresmu di Zona C > Achievement Room."},
+  {re:/leaderboard|peringkat/i, r:"Leaderboard bisa difilter per game dan per periode waktu di Zona C."},
+  {re:/tema|theme/i, r:"Ada 4 tema: Cyberpunk Neon, Dark Mode, Light Mode, dan Mint Forest. Ganti di Zona E."},
+  {re:/bgm|musik|lagu/i, r:"Nyalakan BGM synthwave lo-fi di Zona E > Audio Mixer, lengkap dengan visualizer!"},
+  {re:/kir|kendaraan/i, r:"Uji KIR memeriksa berat dan dimensi kendaraan terhadap standar jalan. Coba kalkulatornya di Zona A."},
+  {re:/kapal|ferry|penyeberangan/i, r:"Status penyeberangan Merak-Bakauheni dan Ketapang-Gilimanuk bisa dipantau real-time simulasi di Zona A."},
+  {re:/rambu/i, r:"Ada 20 rambu edukasi interaktif di Zona A, klik ikonnya untuk penjelasan lengkap."},
+  {re:/darurat|emergency|panic/i, r:"Nomor darurat: Ambulans 118/119, Polisi 110, Damkar 113, atau panggilan darurat nasional 112."},
+  {re:/terima kasih|makasih|thanks/i, r:"Sama-sama! Senang bisa membantu. 🙌"},
+  {re:/siapa.*buat|developer|siapa.*bikin/i, r:"Saya dibangun sebagai bagian dari proyek demo Dishub Cyber-Omni Terminal v2.0."},
+  {re:/live api|gemini|openai/i, r:"Kamu bisa aktifkan Live API Engine di Zona E dan masukkan API key milikmu sendiri untuk respons AI yang sesungguhnya."},
+];
+function lightStateText(){ return lightState==='green'?'HIJAU':lightState==='red'?'MERAH':'KUNING'; }
+function localAIRespond(msg){
+  const m = msg.toLowerCase();
+  if(m.includes('matrix')){ setTheme('mint'); unlockAchievement('secret_finder'); return "🟢 Mode rahasia diaktifkan: tema berubah jadi Mint Forest!"; }
+  for(const p of aiPatterns){ if(p.re && p.re.test && p.re.test(m) && p.r!=='secret_matrix'){ return p.r; } }
+  return "Maaf, Chronos mode Local belum mengenali maksud Anda. Coba ketik 'help' untuk daftar topik/perintah, atau aktifkan Live API Engine di Zona E untuk jawaban yang lebih luas.";
+}
+
+/* conversationHistory disimpan agar Live API punya konteks percakapan, bukan cuma 1 pesan terakhir */
+let conversationHistory = [];
+async function connectToLiveAI(userMessage){
+  // Struktur siap pakai untuk Google Gemini API atau OpenAI API, dengan konteks percakapan.
+  // Catatan: karena ini file statis tanpa server, permintaan dilakukan langsung dari browser pengguna menggunakan API key milik pengguna sendiri.
+  if(!state.apiKey){ return "⚠️ API Key belum diisi. Buka Zona E > AI Configuration Central untuk memasukkannya."; }
+  conversationHistory.push({role:'user', text:userMessage});
+  conversationHistory = conversationHistory.slice(-12); // batasi konteks 12 pesan terakhir
+  try{
+    if(state.apiProvider === 'gemini'){
+      const contents = conversationHistory.map(h=>({role: h.role==='user'?'user':'model', parts:[{text:h.text}]}));
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents })
+      });
+      const data = await res.json();
+      const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respons dari Gemini API.";
+      conversationHistory.push({role:'model', text:answer});
+      return answer;
+    } else {
+      const messages = conversationHistory.map(h=>({role: h.role==='user'?'user':'assistant', content:h.text}));
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${state.apiKey}`},
+        body: JSON.stringify({ model:'gpt-4o-mini', messages })
+      });
+      const data = await res.json();
+      const answer = data?.choices?.[0]?.message?.content || "Tidak ada respons dari OpenAI API.";
+      conversationHistory.push({role:'assistant', text:answer});
+      return answer;
+    }
+  }catch(err){
+    return "⚠️ Gagal menghubungi Live API (kemungkinan CORS/API key salah). Detail: "+err.message;
+  }
+}
+function aiSay(text){
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div'); div.className='animate__animated animate__fadeIn';
+  div.innerHTML = `<span class="neon-text">Chronos:</span> ${text.replace(/\n/g,'<br>')}`;
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+  state.chatLog.push('Chronos: '+text);
+  updateMood();
+  speak(text);
+  return div;
+}
+function showTyping(){
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div'); div.id='typingIndicator'; div.className='text-[var(--text-dim)]';
+  div.innerHTML = `<span class="neon-text">Chronos:</span> mengetik...`;
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+  return div;
+}
+async function sendChat(){
+  const inp = document.getElementById('chatInput'); const msg = inp.value.trim(); if(!msg) return;
+  const box = document.getElementById('chatMessages');
+  const userDiv = document.createElement('div'); userDiv.innerHTML = `<span class="text-[var(--neon-orange)]">Anda:</span> ${msg}`;
+  box.appendChild(userDiv); box.scrollTop = box.scrollHeight;
+  state.chatLog.push('Anda: '+msg);
+  inp.value='';
+
+  // 1) Cek dulu apakah ini perintah aksi nyata (jalan di kedua mode, local maupun live)
+  const cmdResult = tryExecuteCommand(msg);
+  if(cmdResult){ setTimeout(()=> aiSay(cmdResult), 250); return; }
+
+  // 2) Kalau bukan perintah, lanjut ke Q&A (local pattern atau Live API)
+  if(state.aiMode==='live'){
+    const typing = showTyping();
+    const resp = await connectToLiveAI(msg);
+    typing.remove();
+    aiSay(resp);
+  } else {
+    setTimeout(()=> aiSay(localAIRespond(msg)), 300);
+  }
+}
+function updateMood(){
+  const hour = new Date().getHours();
+  const moods = hour<6? "😴 Mengantuk" : hour<18? "😊 Fokus" : "🌙 Santai";
+  document.getElementById('aiMoodBadge').textContent = moods;
+}
+updateMood(); setInterval(updateMood, 60000);
+
+/* ---------- REAL VOICE INPUT (Web Speech API), dengan fallback simulasi ---------- */
+function voiceSim(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    Swal.fire({toast:true,position:'top',timer:1800,showConfirmButton:false,title:'🎙 Speech recognition tidak didukung browser ini, memakai mode simulasi...',background:'#0d141e',color:'#00e5ff'});
+    setTimeout(()=>{
+      const fictionalPhrases = ["ringkasan harian","cek macet","rekomendasi game"];
+      document.getElementById('chatInput').value = fictionalPhrases[Math.floor(Math.random()*fictionalPhrases.length)]; sendChat();
+    }, 1200);
+    return;
+  }
+  const recog = new SR(); recog.lang='id-ID'; recog.interimResults=false; recog.maxAlternatives=1;
+  Swal.fire({toast:true,position:'top',timer:2500,showConfirmButton:false,title:'🎙 Mendengarkan...',background:'#0d141e',color:'#00e5ff'});
+  try{ recog.start(); }catch(e){ return; }
+  recog.onresult = (e)=>{ const text = e.results[0][0].transcript; document.getElementById('chatInput').value = text; sendChat(); };
+  recog.onerror = (e)=>{ Swal.fire({toast:true,position:'top',timer:1500,showConfirmButton:false,title:'Voice error: '+e.error,background:'#0d141e',color:'#ff3b5c'}); };
+}
+
+/* ---------- TEXT-TO-SPEECH ---------- */
+let ttsEnabled = store.get('ttsEnabled', false);
+function toggleTTS(){
+  ttsEnabled = !ttsEnabled; store.set('ttsEnabled', ttsEnabled);
+  document.getElementById('ttsBtn').innerHTML = `<i class="fa-solid ${ttsEnabled?'fa-volume-high':'fa-volume-xmark'} text-xs"></i>`;
+}
+document.getElementById('ttsBtn').innerHTML = `<i class="fa-solid ${ttsEnabled?'fa-volume-high':'fa-volume-xmark'} text-xs"></i>`;
+function speak(text){
+  if(!ttsEnabled || !window.speechSynthesis) return;
+  const clean = text.replace(/[🤖🔍🅿️🚦🎨🎵🔇🐍👾🚗🧠❓📂📝🗓️⏱️💰🏆🕐📸📤📋•]/g,'');
+  const utter = new SpeechSynthesisUtterance(clean);
+  utter.lang = 'id-ID'; utter.rate = 1.05;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
+}
+
+function exportChatLog(){
+  const blob = new Blob([state.chatLog.join('\n')], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='chronos_chat_log.txt'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- SCREENSHOT DASHBOARD (mock canvas snapshot) ---------- */
+function screenshotDashboard(){
+  const c = document.createElement('canvas'); c.width=600; c.height=400;
+  const cx = c.getContext('2d');
+  cx.fillStyle='#070a10'; cx.fillRect(0,0,600,400);
+  cx.strokeStyle='#00e5ff'; cx.strokeRect(10,10,580,380);
+  cx.fillStyle='#00e5ff'; cx.font='20px monospace'; cx.fillText('DISHUB CYBER-OMNI TERMINAL', 30, 50);
+  cx.fillStyle='#c8d6e5'; cx.font='14px monospace';
+  cx.fillText('Snapshot: '+new Date().toLocaleString('id-ID'), 30, 80);
+  cx.fillText('Koin: '+Math.floor(state.coins), 30, 110);
+  cx.fillText('(mock dashboard capture — demo fitur)', 30, 140);
+  const url = c.toDataURL('image/png');
+  const a = document.createElement('a'); a.href=url; a.download='dashboard_snapshot.png'; a.click();
+}
+
+/* ---------- INIT ---------- */
+updateCoinDisplay();
+</script>
+</body>
+</html>
